@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>🚇 地铁科目二</title>
+    <title>🚇 地铁停靠</title>
     <style>
         /* ===== 全局重置 & 基础布局 ===== */
         * { margin: 0; padding: 0; box-sizing: border-box; user-select: none; }
@@ -527,7 +527,7 @@
 <div class="game-container" id="app">
     <!-- 头部 -->
     <div class="header">
-        <div class="title">🚇 对标停靠 <small id="levelDisplay">第1关</small></div>
+        <div class="title">🚇 地铁停靠 <small id="levelDisplay">第1关</small></div>
         <div class="info-panel">
             <div class="info-item"><span>🚄</span><span class="val speed" id="speedDisplay">0</span><span class="unit">km/h</span></div>
             <div class="info-item"><span>📍</span><span class="val deviation" id="deviationDisplay">--</span><span class="unit">m</span></div>
@@ -540,8 +540,8 @@
         <!-- 主菜单 -->
         <div class="overlay" id="mainMenu">
             <div class="icon">🚇</div>
-            <div class="main-text">地铁对标停靠</div>
-            <div class="sub-text">多关卡 · 多车辆 · 真实物理</div>
+            <div class="main-text">地铁停靠</div>
+            <div class="sub-text">多关卡 · 多车辆 · 多成就</div>
             <div class="menu-buttons">
                 <button class="overlay-btn" id="startGameBtn">🚀 开始驾驶</button>
                 <div class="row-buttons">
@@ -1738,7 +1738,7 @@
             // 路况标识 (放在轨道上方，列车之前)
             let zoneYOffset = 0;
             const zoneHeight = 26;
-            const startY = trackY - 60;
+            const startY = trackY - 70;
 
             for (const zone of zones) {
                 const zStart = zone.start;
