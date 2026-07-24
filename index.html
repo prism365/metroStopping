@@ -1079,8 +1079,9 @@
                 }
                 let start, end;
                 let attempts = 0;
+                // 地形位置、长度调整
                 do {
-                    start = -150 - Math.random() * 40;
+                    start = -40 - Math.random() * 60;
                     end = start + 20 + Math.random() * 50;
                     attempts++;
                 } while (attempts < 30 && usedStarts.some(s => Math.abs(s - start) < minGap));
@@ -1255,66 +1256,75 @@
 
         // ---------- 乘客评价 ----------
         function generatePassengerComment(deviation, maxDecel, stopTime, handleChanges, brakeCount, isPass, isATC) {
-            if (!isPass) {
-                if (deviation > 1.0) return '车门与屏蔽门错位，乘客下不了车 😱 请重新对标！';
-                else return '停靠失败，乘客纷纷摇头 😅 再练练吧！';
-            }
+
             const d = Math.abs(deviation);
+
+            if (!isPass) {
+                if (isATC) return 'ATC自动驾驶失误，乘客表示惊讶 😱 ';
+
+                if (d >= 10.0 && stopTime < 8.0) return '达速跨站？！😮 ';
+                if (d >= 10.0) return '师傅，您这是要起飞吗？ 😂 ';
+
+                if (d > 5.0) return '师傅，我要在这里下车吗？😱';
+                else if (d > 2.0) return '师傅，您这是开哪儿去了啊？😵';
+                else return '师傅，挤不出去啊 😅 ';
+            }
+
             const isSmooth = maxDecel < 1.0 && handleChanges <= 4;
             const isHardBrake = maxDecel > 2.0;
             const isJerky = handleChanges > 8 && maxDecel > 1.5;
-            const isTooSlow = stopTime > 18.0;
-            const isTooFast = stopTime < 14.0;
+
+            const isTooSlow = stopTime > 20.0;
+            const isFast = stopTime < 14.0;
             const isPerfectTime = stopTime >= 15.5 && stopTime <= 17.5;
+
             const isPrecise = d <= 0.15;
 
             let comment = '';
-            let emoji = '';
 
             if (isATC) {
                 comment = 'ATC自动驾驶完美执行，乘客表示很安心 🤖';
-                emoji = '🤖';
+
             } else if (isPrecise && isSmooth && isPerfectTime) {
-                comment = '丝滑停靠，精准对标！乘客纷纷鼓掌 👏 您就是地铁界的舒马赫！';
-                emoji = '🌟';
+                comment = '优雅，太优雅了！ 👏 ';
             } else if (isPrecise && isSmooth) {
-                comment = '停得非常稳，偏差极小，乘客舒适度满分 🛋️ 继续加油！';
-                emoji = '😊';
+                comment = '精准而平稳的停靠！ 😊 ';
             } else if (isPrecise && isHardBrake) {
-                comment = '停得真准！就是刹车太急，乘客差点飞出去 😂 下次温柔点～';
-                emoji = '😅';
+                comment = '到站叫醒服务！ 😂';
             } else if (isPrecise && isJerky) {
-                comment = '偏差完美，但您这加减速太魔性了，乘客都快被晃晕了 🤪 求稳一点！';
-                emoji = '🤪';
+                comment = '豪意值拉满的停车 🤪 ';
+            } else if (isPrecise && isTooSlow) {
+                comment = '完美主义者 ⏳ ';
+            } else if (isPrecise) {
+                comment = '先生，您准得像机器一样 🤖 ';
+
             } else if (d <= 0.4 && isSmooth) {
-                comment = '停靠平稳，偏差稍大但可以接受，乘客表示满意 👍';
-                emoji = '👍';
+                comment = '一般般 👍  ';
             } else if (d <= 0.4 && isHardBrake) {
-                comment = '偏差还行，但刹车太急，乘客的咖啡洒了一地 ☕️ 下次提前减速！';
-                emoji = '☕️';
+                comment = '过山车哦，头晕晕哦…… 😵 ';
+            } else if (d <= 0.4 && isJerky) {
+                comment = '手忙脚乱中…… 😬 ';
             } else if (d <= 0.4 && isTooSlow) {
-                comment = '停得还算准，但您也太慢了，乘客等得都刷完一集剧了 📱 效率效率！';
-                emoji = '📱';
+                comment = '乘客已经刷完整部剧了 📱 ';
+            } else if (d <= 0.4) {
+                comment = '寻常的停靠，寻常的生活 🏙️ ';
+
             } else if (d <= 0.8 && isSmooth) {
-                comment = '平稳但偏差稍大，乘客下车得多走两步 🚶 再精准一点就完美了！';
-                emoji = '🚶';
+                comment = '我的行李箱卡住啦 😱 ';
             } else if (d <= 0.8 && isHardBrake) {
-                comment = '偏差有点大，刹车还急，乘客差点撞到前面 😣 下次注意！';
-                emoji = '😣';
+                comment = '这里可以投诉吗？ 😡 ';
             } else if (d <= 0.8 && isTooSlow) {
-                comment = '偏差偏大，还停得慢，乘客都开始玩手机了 📱 您是在思考人生吗？';
-                emoji = '🤔';
-            } else if (d <= 1.0) {
-                comment = '勉强停住，偏差快到极限了，乘客下车得侧身挤出去 🧘 再练练吧！';
-                emoji = '🧘';
-            } else {
-                comment = '停靠失败！乘客集体无语 😶 请重新对标！';
-                emoji = '😶';
+                comment = '您是在思考人生吗？ 🤔 ';
+            } else if (d <= 0.8) {
+                comment = '只能说能下车 😅 ';
+
+            } else if (d <= 1.0 && d > 0.8) {
+                comment = '极限！这在给乘客练瑜伽？ 🧘 ';
             }
 
-            if (isPerfectTime && d <= 0.4) comment += ' 时间节奏完美，老司机稳如泰山！ ⏱️';
-            if (isTooFast && d <= 0.3) comment += ' 闪电进站！ ⚡';
-            if (brakeCount > 4 && d <= 0.3) comment += '  摇啊摇，摇到外婆桥 😴';
+            if (isPerfectTime && d <= 0.4) comment += '时间节奏完美，老司机稳如泰山！ ⏱️ ';
+            if (isFast) comment += ' 闪电进站！ ⚡';
+            if (brakeCount > 4 && d <= 0.3) comment += '点刹摇啊摇，摇到外婆桥 😵 ';
 
             return comment;
         }
@@ -1343,7 +1353,7 @@
                 label = '冲出站台';
                 icon = '🚀';
                 detail = '列车冲出站台，请重新驾驶！';
-                passengerComment = '司机，您这是要起飞吗？ 😂 乘客们吓得抱成一团！';
+                passengerComment = generatePassengerComment(d, maxDecel, stopTime, handleChanges, brakeCount, false, isATC);
             } else if (!isPass) {
                 const raw = 60 - (d - 1) * 20;
                 score = Math.max(0, Math.min(59, Math.floor(raw)));
@@ -1360,17 +1370,18 @@
 
                 const isSmooth = maxDecel < 1.0 && handleChanges <= 4;
                 const isHardBrake = maxDecel > 2.0;
-                const isTooSlow = stopTime > 18.0;
-                const isTooFast = stopTime < 14.0;
+                const isTooSlow = stopTime > 20.0;
+                const isFast = stopTime < 14.0;
                 const isPerfectTime = stopTime >= 15.5 && stopTime <= 17.5;
                 const isJerky = handleChanges > 8 && maxDecel > 1.5;
 
                 let styleBonus = 0;
                 if (isSmooth && isPerfectTime) styleBonus = 8;
                 else if (isSmooth) styleBonus = 4;
+                else if (isPerfectTime) styleBonus = 4;
+                else if (isFast) styleBonus = 2;
                 else if (isHardBrake) styleBonus = -8;
                 else if (isTooSlow) styleBonus = -5;
-                else if (isTooFast) styleBonus = -3;
                 else if (isJerky) styleBonus = -10;
 
                 let totalScore = Math.min(100, Math.max(0, baseScore + styleBonus));
