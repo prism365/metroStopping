@@ -685,14 +685,14 @@
         const toast = document.getElementById('toast');
         let toastTimeout = null;
 
-        // ---------- 成就系统 ----------
+        // ---------- 成就列表 ----------
         const ACHIEVEMENTS = {
             precision: { id: 'precision', name: '精准停靠', icon: '🎯', desc: '偏差 ≤ 0.15m', unlocked: false },
             one_brake: { id: 'one_brake', name: '一把闸', icon: '🛑', desc: '一次制动到位', unlocked: false },
-            smooth: { id: 'smooth', name: '平稳大师', icon: '🧘', desc: '最大减速度 < 0.8 m/s²', unlocked: false },
-            time_master: { id: 'time_master', name: '时间大师', icon: '⏱️', desc: '停靠时间 15.5~17.5s', unlocked: false },
+            smooth: { id: 'smooth', name: '平稳大师', icon: '🧘', desc: '最大减速度 < 1.0 m/s²', unlocked: false },
+            time_master: { id: 'time_master', name: '时间大师', icon: '⏱️', desc: '停靠时间 15.5~18.5s', unlocked: false },
             release: { id: 'release', name: '缓解制动', icon: '🔄', desc: '停稳前缓解制动', unlocked: false },
-            veteran: { id: 'veteran', name: '老司机', icon: '🚇', desc: '完成10次驾驶', unlocked: false },
+            veteran: { id: 'veteran', name: '老司机', icon: '🚇', desc: '完成30次驾驶', unlocked: false },
         };
         let gameCount = 0;
         let unlockedThisRun = [];
@@ -729,14 +729,27 @@
 
         function checkAchievements(data) {
             if (playerProgress.currentVehicle === 'ATC') return;
+
             const dev = Math.abs(data.deviation);
-            if (dev <= 0.15) unlockAchievement('precision');
-            if (data.maxDecel < 0.8) unlockAchievement('smooth');
-            if (data.stopTime >= 15.5 && data.stopTime <= 17.5) unlockAchievement('time_master');
-            if (data.didRelease) unlockAchievement('release');
-            if (data.brakeCount === 1 && data.handleChanges <= 2) unlockAchievement('one_brake');
+            const isPerfectTime = data.stopTime >= 15.5 && data.stopTime <= 18.5;
             gameCount++;
-            if (gameCount >= 10) unlockAchievement('veteran');
+
+            if (dev <= 0.15) unlockAchievement('precision');
+            if (data.maxDecel < 1.0) unlockAchievement('smooth');
+            if (isPerfectTime) unlockAchievement('time_master');
+            // 更精细的“缓解制动”判定：
+            // 条件示例：发生释放动作且释放到停稳间隔 <= 3s，释放位置距停靠点 <= 5m，且释放时速度 <= 3 m/s
+            if (data.didRelease && data.releaseToStop != null) {
+                const dt = data.releaseToStop;
+                const relPos = (typeof data.lastReleasePos === 'number') ? Math.abs(data.lastReleasePos - TARGET_HEAD_POS) : null;
+                const relSpeed = (typeof data.lastReleaseSpeed === 'number') ? data.lastReleaseSpeed : null;
+                if (dt <= 3.0 && (relPos === null || relPos <= 5.0) && (relSpeed === null || relSpeed <= 3.0)) {
+                    unlockAchievement('release');
+                }
+            }
+            if (data.brakeCount === 1 && data.handleChanges <= 5) unlockAchievement('one_brake');
+            if (gameCount >= 30) unlockAchievement('veteran');
+
             saveAchievements();
         }
 
@@ -1072,6 +1085,9 @@
             currentAccel: 0,
             started: false,
             didRelease: false,
+            lastReleaseTime: null,
+            lastReleasePos: null,
+            lastReleaseSpeed: null,
             brakeStartHandle: 0,
             windSpeed: 0,
             atcActive: false,
@@ -1165,6 +1181,9 @@
             state.currentAccel = 0;
             state.started = false;
             state.didRelease = false;
+            state.lastReleaseTime = null;
+            state.lastReleasePos = null;
+            state.lastReleaseSpeed = null;
             state.brakeStartHandle = 0;
             state.windSpeed = 0;
             state.atcActive = false;
@@ -1292,11 +1311,11 @@
 
             const isSmooth = maxDecel < 1.0 && handleChanges <= 4;
             const isHardBrake = maxDecel > 2.0;
-            const isJerky = handleChanges > 8 && maxDecel > 1.5;
+            const isJerky = handleChanges > 12 && maxDecel > 1.5;
 
             const isTooSlow = stopTime > 20.0;
             const isFast = stopTime < 14.0;
-            const isPerfectTime = stopTime >= 15.5 && stopTime <= 17.5;
+            const isPerfectTime = stopTime >= 15.5 && stopTime <= 18.5;
 
             const isPrecise = d <= 0.15;
 
@@ -1318,15 +1337,15 @@
             } else if (isPrecise) {
                 comment = '先生，您准得像机器一样 🤖 ';
 
-            } else if (d <= 0.4 && isSmooth) {
+            } else if (d <= 0.6 && isSmooth) {
                 comment = '一般般 👍  ';
-            } else if (d <= 0.4 && isHardBrake) {
+            } else if (d <= 0.6 && isHardBrake) {
                 comment = '过山车哦，头晕晕哦…… 😵 ';
-            } else if (d <= 0.4 && isJerky) {
+            } else if (d <= 0.6 && isJerky) {
                 comment = '手忙脚乱中…… 😬 ';
-            } else if (d <= 0.4 && isTooSlow) {
+            } else if (d <= 0.6 && isTooSlow) {
                 comment = '乘客已经刷完整部剧了 📱 ';
-            } else if (d <= 0.4) {
+            } else if (d <= 0.6) {
                 comment = '寻常的停靠，寻常的生活 🏙️ ';
 
             } else if (d <= 0.8 && isSmooth) {
@@ -1361,6 +1380,7 @@
             const handleChanges = state.handleChanges || 0;
             const stopTime = state.timer || 0;
             const didRelease = state.didRelease;
+            const releaseToStop = (state.lastReleaseTime != null) ? (state.gameTime - state.lastReleaseTime) : null;
 
             const vehicle = getVehicleParams();
             const isATC = vehicle.isATC || false;
@@ -1392,8 +1412,8 @@
                 const isHardBrake = maxDecel > 2.0;
                 const isTooSlow = stopTime > 20.0;
                 const isFast = stopTime < 14.0;
-                const isPerfectTime = stopTime >= 15.5 && stopTime <= 17.5;
-                const isJerky = handleChanges > 8 && maxDecel > 1.5;
+                const isPerfectTime = stopTime >= 15.5 && stopTime <= 18.5;
+                const isJerky = handleChanges > 12 && maxDecel > 1.5;
 
                 let styleBonus = 0;
                 if (isSmooth && isPerfectTime) styleBonus = 8;
@@ -1428,7 +1448,17 @@
 
             // 成就检查
             if (!isATC && isPass) {
-                checkAchievements({ deviation: d, maxDecel, stopTime, brakeCount, handleChanges, didRelease });
+                checkAchievements({
+                    deviation: d,
+                    maxDecel,
+                    stopTime,
+                    brakeCount,
+                    handleChanges,
+                    didRelease,
+                    releaseToStop,
+                    lastReleasePos: state.lastReleasePos,
+                    lastReleaseSpeed: state.lastReleaseSpeed
+                });
             }
 
             let achHtml = '';
@@ -1627,7 +1657,12 @@
                     deltaHandle = dir * rate * dt;
                     if (Math.abs(deltaHandle) > Math.abs(target - current)) deltaHandle = target - current;
                     state.handle += deltaHandle;
-                    if (current < 0 && state.handle >= 0) state.didRelease = true;
+                    if (current < 0 && state.handle >= 0) {
+                        state.didRelease = true;
+                        state.lastReleaseTime = state.gameTime;
+                        state.lastReleasePos = state.pos;
+                        state.lastReleaseSpeed = state.speed;
+                    }
                 } else {
                     state.handle = target;
                 }
@@ -1884,7 +1919,7 @@
                     ctx.font = 'bold 14px sans-serif';
                     ctx.textAlign = 'center';
                     ctx.textBaseline = 'bottom';
-                    ctx.fillText('▼ 对标点', targetX, platY + 2);
+                    ctx.fillText('停车对位', targetX, platY + 2);
                 }
 
                 // 屏蔽门
