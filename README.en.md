@@ -36,7 +36,7 @@ A browser-based lightweight metro stopping simulation game. The core objective i
 ## Testing Suggestions
 
 - Use developer tools (F12) to check console logs for exceptions
-- Test data clearing logic via the `🗑️Reset Save` button on the "About" page
+- Delete the game data via the `🗑️Reset Save` button on the "About" page
 - After modifying achievement logic, print the `state` at the `endGame()` call site to verify statistics
 - Testing backdoor: on the main menu, press `⬆⬆⬆⬆⬇⬇⬇⬇` to unlock all levels and vehicles
 
