@@ -692,7 +692,7 @@
             smooth: { id: 'smooth', name: '平稳大师', icon: '🧘', desc: '最大减速度 < 1.0 m/s²', unlocked: false },
             time_master: { id: 'time_master', name: '时间大师', icon: '⏱️', desc: '停靠时间 15.5~18.5s', unlocked: false },
             release: { id: 'release', name: '缓解制动', icon: '🔄', desc: '停稳前缓解制动', unlocked: false },
-            veteran: { id: 'veteran', name: '老司机', icon: '🚇', desc: '完成30次驾驶', unlocked: false },
+            veteran: { id: 'veteran', name: '老司机', icon: '🚇', desc: '手动完成30次驾驶', unlocked: false },
         };
         let gameCount = 0;
         let unlockedThisRun = [];
@@ -2078,7 +2078,7 @@
                     else if (devAbs < 1.2) color = '#ffa94d';
                     else color = '#ff6b6b';
                     ctx.fillStyle = color;
-                    ctx.font = 'bold 16px monospace';
+                    ctx.font = 'bold 20px monospace';
                     ctx.textAlign = 'center';
                     ctx.textBaseline = 'top';
                     const label = `偏差 ${dev.toFixed(2)} m`;
