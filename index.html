@@ -690,7 +690,7 @@
             precision: { id: 'precision', name: '精准停靠', icon: '🎯', desc: '偏差 ≤ 0.15m', unlocked: false },
             one_brake: { id: 'one_brake', name: '一把闸', icon: '🛑', desc: '一次制动到位', unlocked: false },
             smooth: { id: 'smooth', name: '平稳大师', icon: '🧘', desc: '最大减速度 < 1.0 m/s²', unlocked: false },
-            time_master: { id: 'time_master', name: '时间大师', icon: '⏱️', desc: '停靠时间 15.5~18.5s', unlocked: false },
+            time_master: { id: 'time_master', name: '时间大师', icon: '⏱️', desc: '停靠时间 16.0~17.0s', unlocked: false },
             release: { id: 'release', name: '缓解制动', icon: '🔄', desc: '停稳前缓解制动', unlocked: false },
             veteran: { id: 'veteran', name: '老司机', icon: '🚇', desc: '手动完成30次驾驶', unlocked: false },
         };
@@ -731,7 +731,7 @@
             if (playerProgress.currentVehicle === 'ATC') return;
 
             const dev = Math.abs(data.deviation);
-            const isPerfectTime = data.stopTime >= 15.5 && data.stopTime <= 18.5;
+            const isPerfectTime = data.stopTime >= 16.0 && data.stopTime <= 17.0;
             gameCount++;
 
             if (dev <= 0.15) unlockAchievement('precision');
