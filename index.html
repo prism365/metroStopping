@@ -548,6 +548,7 @@
                     <button class="overlay-btn secondary small" id="levelMenuBtn">🗺️ 关卡</button>
                     <button class="overlay-btn secondary small" id="vehicleMenuBtn">🚆 车辆</button>
                     <button class="overlay-btn secondary small" id="achievementMenuBtn2">🏆 成就</button>
+                    <button class="overlay-btn secondary small" id="aboutMenuBtn">ℹ️ 关于</button>
                 </div>
             </div>
         </div>
@@ -566,6 +567,20 @@
             <div class="main-text" style="font-size:24px;">车辆图鉴</div>
             <div class="vehicle-grid" id="vehicleGridContainer"></div>
             <button class="overlay-btn secondary" id="closeVehicleViewBtn">返回</button>
+        </div>
+        <!-- 关于页面 -->
+        <div class="overlay hidden" id="aboutView">
+            <button class="close-btn" id="closeAboutBtn">✕</button>
+            <div class="icon">ℹ️</div>
+            <div class="main-text" style="font-size:24px;">关于</div>
+            <div class="sub-text" style="margin-bottom:16px;line-height:1.6;max-width:420px;">
+                一个简单的地铁停靠游戏，主要基于 Deepseek V4 对话实现，并手动润色。<br>
+                开发者：Prism powered by Vibe Coding : )<br>
+                版本信息：1.0.0<br>
+                GitHub： <a href="https://github.com/prism365/metroStopping" target="_blank">https://github.com/prism365/metroStopping</a>
+            </div>
+            <button class="overlay-btn" id="resetStorageBtn">🗑️重置存档</button>
+            <button class="overlay-btn secondary" id="closeAboutViewBtn">返回</button>
         </div>
         <!-- 成就查看 -->
         <div class="overlay hidden" id="achievementView2">
@@ -642,6 +657,7 @@
         const mainMenu = document.getElementById('mainMenu');
         const levelView = document.getElementById('levelView');
         const vehicleView = document.getElementById('vehicleView');
+        const aboutView = document.getElementById('aboutView');
         const achievementView2 = document.getElementById('achievementView2');
         const countdownOverlay = document.getElementById('countdownOverlay');
         const countdownIcon = document.getElementById('countdownIcon');
@@ -655,12 +671,16 @@
         const levelMenuBtn = document.getElementById('levelMenuBtn');
         const vehicleMenuBtn = document.getElementById('vehicleMenuBtn');
         const achievementMenuBtn2 = document.getElementById('achievementMenuBtn2');
+        const aboutMenuBtn = document.getElementById('aboutMenuBtn');
         const closeLevelBtn = document.getElementById('closeLevelBtn');
         const closeLevelViewBtn = document.getElementById('closeLevelViewBtn');
         const closeVehicleBtn = document.getElementById('closeVehicleBtn');
         const closeVehicleViewBtn = document.getElementById('closeVehicleViewBtn');
+        const closeAboutBtn = document.getElementById('closeAboutBtn');
+        const closeAboutViewBtn = document.getElementById('closeAboutViewBtn');
         const closeAchievementBtn2 = document.getElementById('closeAchievementBtn2');
         const closeAchievementView2Btn = document.getElementById('closeAchievementView2Btn');
+        const resetStorageBtn = document.getElementById('resetStorageBtn');
 
         const toast = document.getElementById('toast');
         let toastTimeout = null;
@@ -678,7 +698,7 @@
         let unlockedThisRun = [];
 
         function loadAchievements() {
-            const saved = sessionStorage.getItem('trainAchievements');
+            const saved = localStorage.getItem('trainAchievements');
             if (saved) {
                 try {
                     const data = JSON.parse(saved);
@@ -694,7 +714,7 @@
             const data = {};
             for (let key in ACHIEVEMENTS) data[key] = ACHIEVEMENTS[key].unlocked;
             data.gameCount = gameCount;
-            sessionStorage.setItem('trainAchievements', JSON.stringify(data));
+            localStorage.setItem('trainAchievements', JSON.stringify(data));
         }
 
         function unlockAchievement(id) {
@@ -913,7 +933,7 @@
         };
 
         function loadProgress() {
-            const saved = sessionStorage.getItem('trainProgress');
+            const saved = localStorage.getItem('trainProgress');
             if (saved) {
                 try {
                     const data = JSON.parse(saved);
@@ -927,7 +947,7 @@
         }
 
         function saveProgress() {
-            sessionStorage.setItem('trainProgress', JSON.stringify(playerProgress));
+            localStorage.setItem('trainProgress', JSON.stringify(playerProgress));
         }
 
         function isLevelUnlocked(levelId) {
@@ -2146,6 +2166,7 @@
             levelView.classList.add('hidden');
             vehicleView.classList.add('hidden');
             achievementView2.classList.add('hidden');
+            aboutView.classList.add('hidden');
             countdownOverlay.classList.add('hidden');
             resultOverlay.classList.remove('show');
         }
@@ -2166,6 +2187,11 @@
             mainMenu.classList.add('hidden');
             vehicleView.classList.remove('hidden');
             renderVehicleGrid();
+        }
+
+        function showAboutView() {
+            mainMenu.classList.add('hidden');
+            aboutView.classList.remove('hidden');
         }
 
         function showAchievementView2() {
@@ -2396,6 +2422,7 @@
         levelMenuBtn.addEventListener('click', showLevelView);
         vehicleMenuBtn.addEventListener('click', showVehicleView);
         achievementMenuBtn2.addEventListener('click', showAchievementView2);
+        aboutMenuBtn.addEventListener('click', showAboutView);
 
         closeLevelBtn.addEventListener('click', () => { levelView.classList.add('hidden');
             mainMenu.classList.remove('hidden'); });
@@ -2405,10 +2432,35 @@
             mainMenu.classList.remove('hidden'); });
         closeVehicleViewBtn.addEventListener('click', () => { vehicleView.classList.add('hidden');
             mainMenu.classList.remove('hidden'); });
+        closeAboutBtn.addEventListener('click', () => { aboutView.classList.add('hidden');
+            mainMenu.classList.remove('hidden'); });
+        closeAboutViewBtn.addEventListener('click', () => { aboutView.classList.add('hidden');
+            mainMenu.classList.remove('hidden'); });
         closeAchievementBtn2.addEventListener('click', () => { achievementView2.classList.add('hidden');
             mainMenu.classList.remove('hidden'); });
         closeAchievementView2Btn.addEventListener('click', () => { achievementView2.classList.add('hidden');
             mainMenu.classList.remove('hidden'); });
+
+        resetStorageBtn.addEventListener('click', () => {
+            if (!confirm('确定要重置存档吗？这将清除所有本地进度和成就。')) return;
+            if (!confirm('所有游戏进度将无法恢复！确定要继续？')) return;
+            localStorage.removeItem('trainProgress');
+            localStorage.removeItem('trainAchievements');
+            playerProgress = {
+                unlockedLevels: [0],
+                currentLevel: 0,
+                currentVehicle: 'STANDARD',
+                unlockedVehicles: ['STANDARD'],
+                levelStars: {},
+            };
+            for (let key in ACHIEVEMENTS) {
+                ACHIEVEMENTS[key].unlocked = false;
+            }
+            gameCount = 0;
+            resetFull();
+            showMainMenu();
+            showToast('🗑️ 存档已重置');
+        });
 
         menuReturnBtn.addEventListener('click', () => {
             resetFull();

@@ -1,39 +1,45 @@
-# metroStopping
+# 地铁停靠（Metro Stopping）
 
-#### 介绍
-{**以下是 Gitee 平台说明，您可以替换此简介**
-Gitee 是 OSCHINA 推出的基于 Git 的代码托管平台（同时支持 SVN）。专为开发者提供稳定、高效、安全的云端软件开发协作平台
-无论是个人、团队、或是企业，都能够用 Gitee 实现代码托管、项目管理、协作开发。企业项目请看 [https://gitee.com/enterprises](https://gitee.com/enterprises)}
+（语言 / Language： [English](README.en.md)）
 
-#### 软件架构
-软件架构说明
+一个基于浏览器的轻量地铁停靠模拟小游戏，核心游戏目标是在站台对位点精准停车。游戏包含多关卡、车辆解锁、成就系统与街机模式，希望你玩得开心。:)
 
+## 主要特色
 
-#### 安装教程
+- 基于物理的停靠模拟（牵引、制动、摩擦、空气阻力、坡度、积水与风）
+- 多关卡与车辆解锁系统
+- 支持手动驾驶与 ATC 自动驾驶模式
 
-1.  xxxx
-2.  xxxx
-3.  xxxx
+## 快速开始
 
-#### 使用说明
+1. 在浏览器中打开 `index.html`（双击或通过本地静态服务器）
+2. 在主界面点击 **开始驾驶** 开始游戏
+3. 控制说明：
+	- `↑` / `⬆`：加速（牵引）
+	- `↓` / `⬇`：减速（制动）
+	- `Space`：复位手柄
+	- `R`：重置并返回主菜单
+	- `M`：主菜单
 
-1.  xxxx
-2.  xxxx
-3.  xxxx
+## 开发说明
 
-#### 参与贡献
+- 主要文件：`index.html`（包含样式、UI 与所有游戏逻辑）
+- 本地数据键：`trainProgress`、`trainAchievements`（保存在 `localStorage`）
+- 成就定义位于 `ACHIEVEMENTS` 对象；判定在 `checkAchievements(data)` 中实现
 
-1.  Fork 本仓库
-2.  新建 Feat_xxx 分支
-3.  提交代码
-4.  新建 Pull Request
+### 常见修改点
 
+- 把成就阈值抽成常量：将判定中硬编码的阈值移到文件顶部，便于调整
+- 添加新成就：在 `ACHIEVEMENTS` 添加条目，并在 `checkAchievements` 中写入判定逻辑
+- 保存方式切换：目前使用 `localStorage`，可尝试服务端持久化
 
-#### 特技
+## 测试建议
 
-1.  使用 Readme\_XXX.md 来支持不同的语言，例如 Readme\_en.md, Readme\_zh.md
-2.  Gitee 官方博客 [blog.gitee.com](https://blog.gitee.com)
-3.  你可以 [https://gitee.com/explore](https://gitee.com/explore) 这个地址来了解 Gitee 上的优秀开源项目
-4.  [GVP](https://gitee.com/gvp) 全称是 Gitee 最有价值开源项目，是综合评定出的优秀开源项目
-5.  Gitee 官方提供的使用手册 [https://gitee.com/help](https://gitee.com/help)
-6.  Gitee 封面人物是一档用来展示 Gitee 会员风采的栏目 [https://gitee.com/gitee-stars/](https://gitee.com/gitee-stars/)
+- 在开发者工具（F12）查看控制台日志以捕获异常
+- 在“关于”页面使用 `🗑️重置存档` 测试数据清除逻辑
+- 修改成就判定后在 `endGame()` 调用处打印 `state` 验证统计值
+- 测试后门：在主菜单按`⬆⬆⬆⬆⬇⬇⬇⬇`可以解锁所有关卡与车辆
+
+## 贡献
+
+欢迎贡献：Fork -> 创建分支 -> 提交 PR。请在 PR 中描述修改点与测试步骤。
