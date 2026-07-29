@@ -24,7 +24,7 @@ A browser-based lightweight metro stopping simulation game. The core objective i
 ## Development Notes
 
 - Main file: `index.html` (contains styles, UI, and all game logic)
-- Local data keys: `trainProgress`, `trainAchievements` (stored in `localStorage`)
+- Local data keys (The game data): `trainProgress`, `trainAchievements` (stored in `localStorage`)
 - Achievements are defined in the `ACHIEVEMENTS` object; logic is implemented in `checkAchievements(data)`
 
 ### Common Modification Points

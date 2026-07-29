@@ -24,7 +24,7 @@
 ## 开发说明
 
 - 主要文件：`index.html`（包含样式、UI 与所有游戏逻辑）
-- 本地数据键：`trainProgress`、`trainAchievements`（保存在 `localStorage`）
+- 本地数据键（游戏数据）：`trainProgress`、`trainAchievements`（保存在 `localStorage`）
 - 成就定义位于 `ACHIEVEMENTS` 对象；判定在 `checkAchievements(data)` 中实现
 
 ### 常见修改点
