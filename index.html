@@ -179,6 +179,46 @@
         .overlay-btn.secondary:hover { background: rgba(255,255,255,0.15); }
         .overlay-btn.small { padding: 6px 20px; font-size: 14px; min-width: 80px; }
 
+        .modal-overlay {
+            position: absolute;
+            inset: 0;
+            background: rgba(2, 8, 16, 0.78);
+            backdrop-filter: blur(6px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 60;
+            padding: 20px;
+        }
+        .modal-overlay.hidden { display: none; }
+        .modal-card {
+            width: min(92vw, 420px);
+            background: linear-gradient(145deg, rgba(16, 36, 51, 0.98), rgba(8, 21, 32, 0.98));
+            border: 1px solid rgba(120, 190, 255, 0.16);
+            border-radius: 18px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.45);
+            padding: 22px 20px 18px;
+            text-align: center;
+        }
+        .modal-title {
+            font-size: 20px;
+            font-weight: 700;
+            color: #ffffff;
+            margin-bottom: 10px;
+        }
+        .modal-message {
+            color: #b8d7f4;
+            font-size: 15px;
+            line-height: 1.6;
+            margin-bottom: 18px;
+        }
+        .modal-actions {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
         .menu-buttons { display: flex; flex-direction: column; gap: 10px; align-items: center; width: 100%; max-width: 320px; }
         .row-buttons { display: flex; flex-wrap: wrap; justify-content: center; gap: 10px; }
 
@@ -610,6 +650,16 @@
             <button class="result-btn" id="resultBtn">🔄 下一关</button>
         </div>
         <div class="toast" id="toast"></div>
+        <div class="modal-overlay hidden" id="confirmModal">
+            <div class="modal-card">
+                <div class="modal-title" id="confirmTitle">确认操作</div>
+                <div class="modal-message" id="confirmMessage">确定要继续吗？</div>
+                <div class="modal-actions">
+                    <button class="overlay-btn secondary" id="confirmCancelBtn">取消</button>
+                    <button class="overlay-btn" id="confirmOkBtn">确认</button>
+                </div>
+            </div>
+        </div>
     </div>
 
     <div class="controls">
@@ -684,16 +734,22 @@
         const resetStorageBtn = document.getElementById('resetStorageBtn');
 
         const toast = document.getElementById('toast');
+        const confirmModal = document.getElementById('confirmModal');
+        const confirmTitle = document.getElementById('confirmTitle');
+        const confirmMessage = document.getElementById('confirmMessage');
+        const confirmCancelBtn = document.getElementById('confirmCancelBtn');
+        const confirmOkBtn = document.getElementById('confirmOkBtn');
         let toastTimeout = null;
+        let pendingConfirmResolver = null;
 
         // ---------- 成就列表 ----------
         const ACHIEVEMENTS = {
             precision: { id: 'precision', name: '精准停靠', icon: '🎯', desc: '偏差 ≤ 0.15m', unlocked: false },
             one_brake: { id: 'one_brake', name: '一把闸', icon: '🛑', desc: '一次制动到位', unlocked: false },
             smooth: { id: 'smooth', name: '平稳大师', icon: '🧘', desc: '最大减速度 < 1.0 m/s²', unlocked: false },
-            time_master: { id: 'time_master', name: '时间大师', icon: '⏱️', desc: '停靠时间 16.0~17.0s', unlocked: false },
+            time_master: { id: 'time_master', name: '准时宝', icon: '⏱️', desc: '停靠时间 16.0~17.0s', unlocked: false },
             release: { id: 'release', name: '缓解制动', icon: '🔄', desc: '停稳前缓解制动', unlocked: false },
-            veteran: { id: 'veteran', name: '老司机', icon: '🚇', desc: '手动完成30次驾驶', unlocked: false },
+            veteran: { id: 'veteran', name: '老司机', icon: '🚇', desc: '手动完成20次驾驶', unlocked: false },
         };
         let gameCount = 0;
         let unlockedThisRun = [];
@@ -749,12 +805,12 @@
                 }
             }
             if (data.brakeCount === 1 && data.handleChanges <= 5) unlockAchievement('one_brake');
-            if (gameCount >= 30) unlockAchievement('veteran');
+            if (gameCount >= 20) unlockAchievement('veteran');
 
             saveAchievements();
         }
 
-        // ---------- 关卡系统 (调整ATC解锁位置) ----------
+        // ---------- 关卡系统 ----------
         const LEVELS = [{
             id: 0,
             name: '训练场',
@@ -827,7 +883,7 @@
                 { start: -80, end: -20, type: 'wind' }
             ],
             initialOffset: 160,
-            unlockVehicle: 'PERFORMANCE',   // 原为'ATC'，改为'PERFORMANCE'
+            unlockVehicle: 'PERFORMANCE',
             prerequisites: [5]
         }, {
             id: 7,
@@ -841,7 +897,7 @@
                 { start: -90, end: -10, type: 'wind' }
             ],
             initialOffset: 180,
-            unlockVehicle: 'ATC',           // 原为'PERFORMANCE'，改为'ATC'
+            unlockVehicle: 'ATC',
             prerequisites: [6]
         }, {
             id: 8,
@@ -854,7 +910,7 @@
             prerequisites: [7]
         }];
 
-        // ---------- 车辆系统 (更新解锁文字) ----------
+        // ---------- 车辆系统 ----------
         const VEHICLES = {
             STANDARD: {
                 id: 'STANDARD',
@@ -913,26 +969,26 @@
                 name: '高性能',
                 icon: '🏎️',
                 desc: '牵引+80%，制动+80%，阻力-40%',
-                unlockText: '通关第7关解锁',   // 原为第8关，改为第7关
+                unlockText: '通关第7关解锁',
                 tractionFactor: 1.8,
                 brakeFactor: 1.8,
                 frictionFactor: 0.6,
                 airResistanceFactor: 0.6,
                 maxSpeed: 35.0,
-                unlockCondition: 'level6'    // 对应 id=6
+                unlockCondition: 'level6'
             },
             ATC: {
                 id: 'ATC',
                 name: 'ATC自动驾驶',
                 icon: '🤖',
                 desc: '自动精准停靠（不计入成就）',
-                unlockText: '通关第8关解锁',   // 原为第7关，改为第8关
+                unlockText: '通关第8关解锁',
                 tractionFactor: 1.8,
                 brakeFactor: 1.8,
                 frictionFactor: 0.6,
                 airResistanceFactor: 0.6,
                 maxSpeed: 35.0,
-                unlockCondition: 'level7',   // 对应 id=7
+                unlockCondition: 'level7',
                 isATC: true
             }
         };
@@ -1523,6 +1579,43 @@
             }
         }
 
+        function getWindSpeedForZones(zones, trainHead, trainTail) {
+            let wind = 0;
+            let totalOverlap = 0;
+            let windSum = 0;
+
+            for (const zone of zones) {
+                if (zone.type !== 'wind') continue;
+                const zStart = zone.start;
+                const zEnd = zone.end;
+                const overlapStart = Math.max(trainTail, zStart);
+                const overlapEnd = Math.min(trainHead, zEnd);
+                if (overlapEnd > overlapStart) {
+                    const overlapLen = overlapEnd - overlapStart;
+                    totalOverlap += overlapLen;
+                    const zoneKey = zone.id || `${zone.start}:${zone.end}:${zone.type}`;
+                    let baseWind = state.windBases[zoneKey] || 0;
+                    if (baseWind === 0) {
+                        const magnitude = 8.0 + Math.random() * 6.0;
+                        const sign = Math.random() > 0.5 ? 1 : -1;
+                        baseWind = sign * magnitude;
+                        state.windBases[zoneKey] = baseWind;
+                    }
+                    const amp = Math.abs(baseWind) * 0.2;
+                    const phase = ((zone.start % 100) + (zone.end - zone.start) * 0.1) * 0.1 + 1.7;
+                    const wave = Math.sin(state.gameTime * 0.5 + phase) * amp;
+                    const instantWind = baseWind + wave;
+                    windSum += instantWind * overlapLen;
+                }
+            }
+
+            if (totalOverlap > 0) {
+                wind = windSum / totalOverlap;
+            }
+            state.windSpeed = wind;
+            return wind;
+        }
+
         // ---------- ATC 控制更新 ----------
         function updateATC(dt) {
             if (!state.atcActive) return;
@@ -1547,9 +1640,7 @@
             const trainTail = state.pos - TRAIN_LENGTH;
             let totalGradient = 0;
             let totalWaterResist = 0;
-            let wind = 0;
-            let totalOverlap = 0;
-            let windSum = 0;
+            const wind = getWindSpeedForZones(zones, trainHead, trainTail);
 
             for (const zone of zones) {
                 const zStart = zone.start;
@@ -1563,25 +1654,9 @@
                         totalGradient += zone.value * ratio;
                     } else if (zone.type === 'water') {
                         totalWaterResist += zone.value * ratio;
-                    } else if (zone.type === 'wind') {
-                        totalOverlap += overlapLen;
-                        let baseWind = state.windBases[zone.id] || 0;
-                        if (baseWind === 0) {
-                            const magnitude = 8.0 + Math.random() * 9.1;
-                            const sign = Math.random() > 0.5 ? 1 : -1;
-                            baseWind = sign * magnitude;
-                            state.windBases[zone.id] = baseWind;
-                        }
-                        const amp = Math.abs(baseWind) * 0.2;
-                        const phase = (zone.start % 100) * 0.1 + 1.7;
-                        const wave = Math.sin(state.gameTime * 0.5 + phase) * amp;
-                        const instantWind = baseWind + wave;
-                        windSum += instantWind * overlapLen;
                     }
                 }
             }
-            if (totalOverlap > 0) wind = windSum / totalOverlap;
-            state.windSpeed = wind;
 
             let feedforward = 0;
             if (totalGradient !== 0) feedforward += 9.8 * totalGradient;
@@ -1589,7 +1664,7 @@
             if (Math.abs(wind) > 0.01) {
                 const relativeSpeed = state.speed + wind;
                 const airDrag = BASE_AIR_RESISTANCE * (vehicle.airResistanceFactor || 1.0) * relativeSpeed * Math.abs(relativeSpeed);
-                feedforward += 0.25 * airDrag;
+                feedforward += 0.25 * airDrag; // “大风”前馈补偿系数调整
             }
 
             accelCmd += feedforward;
@@ -1685,6 +1760,12 @@
             }
 
             const frictionDecel = BASE_FRICTION_DECEL * (vehicle.frictionFactor || 1.0);
+            const zones = level.zones || [];
+            const trainHead = state.pos;
+            const trainTail = state.pos - TRAIN_LENGTH;
+            if (!isATC || !state.atcActive) {
+                getWindSpeedForZones(zones, trainHead, trainTail);
+            }
             const relativeSpeed = state.speed + state.windSpeed;
             const airDrag = BASE_AIR_RESISTANCE * (vehicle.airResistanceFactor || 1.0) * relativeSpeed * Math.abs(relativeSpeed);
             accel -= airDrag;
@@ -1692,9 +1773,6 @@
             else if (state.speed < -0.01) accel += frictionDecel;
 
             if (!isATC || !state.atcActive) {
-                const zones = level.zones || [];
-                const trainHead = state.pos;
-                const trainTail = state.pos - TRAIN_LENGTH;
                 let totalGradient = 0;
                 let totalWaterResist = 0;
                 for (const zone of zones) {
@@ -1791,7 +1869,7 @@
             const level = getLevelParams();
             const zones = level.zones || [];
 
-            // 路况标识 (放在轨道上方，列车之前)
+            // 路况标识 (放在轨道上方)
             let zoneYOffset = 0;
             const zoneHeight = 26;
             const startY = trackY - 70;
@@ -2333,6 +2411,28 @@
             }, 2500);
         }
 
+        function showConfirmDialog(message, title = '确认操作', confirmText = '确认', cancelText = '取消') {
+            confirmTitle.textContent = title;
+            confirmMessage.textContent = message;
+            confirmOkBtn.textContent = confirmText;
+            confirmCancelBtn.textContent = cancelText;
+            confirmModal.classList.remove('hidden');
+            return new Promise(resolve => {
+                pendingConfirmResolver = resolve;
+            });
+        }
+
+        function closeConfirmDialog(result) {
+            confirmModal.classList.add('hidden');
+            if (pendingConfirmResolver) {
+                pendingConfirmResolver(result);
+                pendingConfirmResolver = null;
+            }
+        }
+
+        confirmCancelBtn.addEventListener('click', () => closeConfirmDialog(false));
+        confirmOkBtn.addEventListener('click', () => closeConfirmDialog(true));
+
         // ---------- 事件绑定 ----------
         function setupButton(btn, action) {
             btn.addEventListener('click', (e) => { e.preventDefault();
@@ -2477,9 +2577,11 @@
         closeAchievementView2Btn.addEventListener('click', () => { achievementView2.classList.add('hidden');
             mainMenu.classList.remove('hidden'); });
 
-        resetStorageBtn.addEventListener('click', () => {
-            if (!confirm('确定要重置存档吗？这将清除所有本地进度和成就。')) return;
-            if (!confirm('所有游戏进度将无法恢复！确定要继续？')) return;
+        resetStorageBtn.addEventListener('click', async () => {
+            const firstConfirm = await showConfirmDialog('确定要重置存档吗？这将清除所有本地进度和成就。', '确认重置', '确认', '取消');
+            if (!firstConfirm) return;
+            const secondConfirm = await showConfirmDialog('所有游戏进度将无法恢复！确定要继续？', '再次确认', '确认重置', '取消');
+            if (!secondConfirm) return;
             localStorage.removeItem('trainProgress');
             localStorage.removeItem('trainAchievements');
             playerProgress = {
