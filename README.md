@@ -23,9 +23,11 @@
 
 ## 开发说明
 
-- 主要文件：`index.html`（包含样式、UI 与所有游戏逻辑）
+- 入口文件：`index.html`
+- 样式文件：`src/styles/main.css`
+- 游戏逻辑与数据：`src/game/main.js`、`src/game/data.js`、`src/game/storage.js`
 - 本地数据键（游戏数据）：`trainProgress`、`trainAchievements`（保存在 `localStorage`）
-- 成就定义位于 `ACHIEVEMENTS` 对象；判定在 `checkAchievements(data)` 中实现
+- 成就定义位于 `src/game/data.js` 的 `ACHIEVEMENTS` 对象；判定在 `checkAchievements(data)` 中实现
 
 ### 常见修改点
 

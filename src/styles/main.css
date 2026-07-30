@@ -1,0 +1,557 @@
+
+        /* ===== 全局重置 & 基础布局 ===== */
+        * { margin: 0; padding: 0; box-sizing: border-box; user-select: none; }
+        body { 
+            background: #0b1926; 
+            min-height: 100vh; 
+            display: flex; 
+            justify-content: center; 
+            align-items: center; 
+            font-family: 'Segoe UI', 'PingFang SC', Roboto, sans-serif; 
+            padding: 12px; 
+            padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
+        }
+        .game-container { 
+            background: linear-gradient(165deg, #102433, #081520); 
+            border-radius: 36px; 
+            padding: 20px 20px 26px; 
+            box-shadow: 0 20px 40px rgba(0,0,0,0.8); 
+            max-width: 1100px; 
+            width: 100%; 
+            border: 1px solid rgba(80,180,255,0.08); 
+            position: relative; 
+        }
+        /* 头部 */
+        .header { 
+            display: flex; 
+            flex-wrap: wrap; 
+            justify-content: space-between; 
+            align-items: center; 
+            padding: 0 4px 12px 4px; 
+            gap: 8px; 
+        }
+        .title { 
+            color: #c8e2ff; 
+            font-size: 22px; 
+            font-weight: 700; 
+            display: flex; 
+            align-items: center; 
+            gap: 10px; 
+        }
+        .title small { 
+            font-size: 14px; 
+            font-weight: 400; 
+            background: rgba(255,215,0,0.12); 
+            padding: 2px 14px; 
+            border-radius: 30px; 
+            color: #ffd966; 
+            border: 1px solid rgba(255,215,0,0.15); 
+        }
+        .info-panel { 
+            display: flex; 
+            flex-wrap: wrap; 
+            align-items: center; 
+            gap: 10px 18px; 
+            background: rgba(0,20,40,0.5); 
+            padding: 4px 16px 4px 20px; 
+            border-radius: 40px; 
+            backdrop-filter: blur(4px); 
+            border: 1px solid rgba(100,180,255,0.08); 
+        }
+        .info-item { 
+            display: flex; 
+            align-items: baseline; 
+            gap: 4px; 
+            color: #8bb8e8; 
+            font-size: 14px; 
+            font-weight: 500; 
+        }
+        .info-item .val { 
+            font-size: 20px; 
+            font-weight: 700; 
+            color: #d4edff; 
+            min-width: 4.5em; 
+            text-align: center; 
+            font-variant-numeric: tabular-nums; 
+            display: inline-block; 
+        }
+        .info-item .val.speed { color: #7fc8ff; }
+        .info-item .val.deviation { color: #ffd866; }
+        .info-item .val.deviation.perfect { color: #7dffb3; }
+        .info-item .val.deviation.good { color: #aaffaa; }
+        .info-item .val.deviation.fair { color: #ffa94d; }
+        .info-item .val.deviation.poor { color: #ff6b6b; }
+        .info-item .unit { font-size: 12px; color: #5a8aaa; margin-left: 2px; }
+        .status-badge { 
+            font-size: 13px; 
+            padding: 4px 16px; 
+            border-radius: 30px; 
+            font-weight: 600; 
+            background: rgba(100,200,255,0.08); 
+            color: #7fc8ff; 
+            border: 1px solid rgba(100,200,255,0.1); 
+            white-space: nowrap; 
+        }
+        .status-badge.ready { background: rgba(255,215,0,0.12); color: #ffd966; border-color: rgba(255,215,0,0.2); }
+        .status-badge.running { background: rgba(100,200,255,0.12); color: #7fc8ff; }
+        .status-badge.stopped { background: rgba(125,255,179,0.12); color: #7dffb3; border-color: rgba(125,255,179,0.2); }
+        .status-badge.fail { background: rgba(255,107,107,0.12); color: #ff6b6b; border-color: rgba(255,107,107,0.2); }
+
+        /* ===== Canvas 容器 & 画布 ===== */
+        .canvas-wrapper { 
+            position: relative; 
+            background: #0b1926; 
+            border-radius: 20px; 
+            overflow: hidden; 
+            box-shadow: inset 0 4px 30px rgba(0,0,0,0.7), 0 0 0 1px rgba(100,180,255,0.04); 
+            touch-action: none; 
+            width: 100%;
+            /* 默认宽高比 1000/420 ≈ 2.38，竖屏时通过媒体查询覆盖 */ 
+        }
+        canvas { 
+            display: block; 
+            width: 100%; 
+            height: auto; 
+            aspect-ratio: 1000 / 420; 
+            touch-action: none; 
+            cursor: pointer; 
+        }
+
+        /* ===== 覆盖层 (菜单/弹窗) ===== */
+        .overlay { 
+            position: absolute; 
+            inset: 0; 
+            background: rgba(0,10,25,0.92); 
+            backdrop-filter: blur(8px); 
+            display: flex; 
+            flex-direction: column; 
+            justify-content: center; 
+            align-items: center; 
+            border-radius: 20px; 
+            z-index: 30; 
+            padding: 30px; 
+            text-align: center; 
+            transition: opacity 0.4s; 
+            overflow-y: auto; 
+        }
+        .overlay.hidden { opacity: 0; pointer-events: none; }
+        .overlay .icon { font-size: 64px; margin-bottom: 8px; }
+        .overlay .main-text { font-size: 28px; color: #fff; font-weight: 700; margin-bottom: 4px; }
+        .overlay .sub-text { font-size: 16px; color: #8bb8e8; opacity: 0.9; margin-bottom: 16px; }
+        .overlay .route-info { 
+            font-size: 18px; 
+            color: #ffd866; 
+            margin-top: 6px; 
+            padding: 8px 20px; 
+            background: rgba(0,0,0,0.3); 
+            border-radius: 30px; 
+            display: inline-block; 
+        }
+        .overlay-btn { 
+            background: linear-gradient(145deg, #ffd866, #f5b842); 
+            border: none; 
+            border-radius: 60px; 
+            padding: 10px 36px; 
+            font-size: 18px; 
+            font-weight: 700; 
+            color: #1a2f44; 
+            cursor: pointer; 
+            transition: 0.15s; 
+            box-shadow: 0 6px 24px rgba(255,216,102,0.25); 
+            margin: 4px; 
+            min-width: 140px; 
+        }
+        .overlay-btn:hover { transform: scale(1.04); }
+        .overlay-btn:active { transform: scale(0.96); }
+        .overlay-btn.secondary { 
+            background: rgba(255,255,255,0.08); 
+            color: #b0d4ff; 
+            box-shadow: none; 
+            border: 1px solid rgba(100,180,255,0.15); 
+        }
+        .overlay-btn.secondary:hover { background: rgba(255,255,255,0.15); }
+        .overlay-btn.small { padding: 6px 20px; font-size: 14px; min-width: 80px; }
+
+        .modal-overlay {
+            position: absolute;
+            inset: 0;
+            background: rgba(2, 8, 16, 0.78);
+            backdrop-filter: blur(6px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 60;
+            padding: 20px;
+        }
+        .modal-overlay.hidden { display: none; }
+        .modal-card {
+            width: min(92vw, 420px);
+            background: linear-gradient(145deg, rgba(16, 36, 51, 0.98), rgba(8, 21, 32, 0.98));
+            border: 1px solid rgba(120, 190, 255, 0.16);
+            border-radius: 18px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.45);
+            padding: 22px 20px 18px;
+            text-align: center;
+        }
+        .modal-title {
+            font-size: 20px;
+            font-weight: 700;
+            color: #ffffff;
+            margin-bottom: 10px;
+        }
+        .modal-message {
+            color: #b8d7f4;
+            font-size: 15px;
+            line-height: 1.6;
+            margin-bottom: 18px;
+        }
+        .modal-actions {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .menu-buttons { display: flex; flex-direction: column; gap: 10px; align-items: center; width: 100%; max-width: 320px; }
+        .row-buttons { display: flex; flex-wrap: wrap; justify-content: center; gap: 10px; }
+
+        /* ===== 列表网格 (关卡/车辆/成就) ===== */
+        .level-grid, .vehicle-grid, .achievement-list { 
+            display: flex; 
+            flex-wrap: wrap; 
+            justify-content: center; 
+            gap: 10px; 
+            max-width: 560px; 
+            max-height: 220px; 
+            overflow-y: auto; 
+            padding: 10px; 
+            background: rgba(0,0,0,0.3); 
+            border-radius: 16px; 
+            margin: 8px 0 12px; 
+            width: 100%; 
+            -webkit-overflow-scrolling: touch; 
+        }
+        .level-card, .vehicle-card, .achievement-item { 
+            background: rgba(255,255,255,0.05); 
+            border-radius: 12px; 
+            padding: 8px 14px; 
+            display: flex; 
+            flex-direction: column; 
+            align-items: center; 
+            border: 1px solid rgba(255,255,255,0.05); 
+            cursor: pointer; 
+            transition: 0.2s; 
+        }
+        .level-card { width: 120px; }
+        .level-card.unlocked { border-color: rgba(255,215,0,0.3); background: rgba(255,215,0,0.05); }
+        .level-card.locked { opacity: 0.5; cursor: not-allowed; }
+        .level-card .lv-icon { font-size: 28px; }
+        .level-card .lv-name { font-size: 14px; font-weight: 600; color: #ffffff; text-shadow: 0 0 8px rgba(0,0,0,0.5); }
+        .level-card .lv-desc { font-size: 11px; color: #b0d4ff; text-align: center; }
+        .level-card .lv-status { font-size: 12px; margin-top: 4px; color: #8bb8e8; }
+
+        .vehicle-card { min-width: 100px; }
+        .vehicle-card.unlocked { border-color: #7dffb3; background: rgba(125,255,179,0.05); }
+        .vehicle-card.locked { opacity: 0.4; }
+        .vehicle-card .v-icon { font-size: 28px; }
+        .vehicle-card .v-name { font-size: 14px; font-weight: 600; color: #d4edff; }
+        .vehicle-card .v-desc { font-size: 11px; color: #b0d4ff; text-align: center; line-height: 1.4; }
+        .vehicle-card .v-status { font-size: 12px; color: #8bb8e8; margin-top: 2px; }
+
+        .achievement-item { 
+            width: calc(50% - 6px); 
+            min-width: 140px; 
+            color: #b0d4ff; 
+            font-size: 15px; 
+        }
+
+        .achievement-item.unlocked { border-color: #ffd866; background: rgba(255,216,102,0.08); color: #ffd866; }
+        .achievement-item .ach-icon { font-size: 24px; }
+        .achievement-item .ach-name { font-weight: 600; }
+
+        .achievement-item .ach-desc {
+            width: 100%;
+            margin-left: 0;
+            text-align: center;
+            align-self: center;
+            font-size: 12px;
+            opacity: 0.7;
+            color: #b0d4ff;
+        }
+
+        .achievement-item.unlocked .ach-desc { color: #ffd866; opacity: 0.9; }
+
+        .close-btn { 
+            position: absolute; 
+            top: 12px; 
+            right: 16px; 
+            font-size: 28px; 
+            color: #8bb8e8; 
+            cursor: pointer; 
+            background: none; 
+            border: none; 
+            transition: 0.2s; 
+        }
+        .close-btn:hover { color: #fff; transform: scale(1.1); }
+
+        /* ===== 结算面板 ===== */
+        .result-overlay { 
+            position: absolute; 
+            inset: 0; 
+            background: rgba(0,10,25,0.88); 
+            backdrop-filter: blur(8px); 
+            display: none; 
+            flex-direction: column; 
+            justify-content: center; 
+            align-items: center; 
+            border-radius: 20px; 
+            z-index: 20; 
+            padding: 30px; 
+            animation: fadeIn 0.4s ease; 
+        }
+        .result-overlay.show { display: flex; }
+        @keyframes fadeIn { from { opacity: 0; transform: scale(0.95); } to { opacity: 1; transform: scale(1); } }
+        .result-icon { font-size: 52px; margin-bottom: 2px; }
+        .result-title { font-size: 24px; font-weight: 800; color: #fff; margin-bottom: 2px; }
+        .result-score { font-size: 44px; font-weight: 900; color: #ffd866; margin: 2px 0 6px; }
+        .result-score.perfect { color: #7dffb3; text-shadow: 0 0 40px rgba(125,255,179,0.2); }
+        .result-score.fail { color: #ff6b6b; }
+        .result-detail-box { 
+            background: rgba(0,0,0,0.3); 
+            border-radius: 14px; 
+            padding: 10px 18px; 
+            max-width: 460px; 
+            width: 100%; 
+            margin: 4px 0 10px; 
+            border: 1px solid rgba(255,255,255,0.05); 
+        }
+        .result-detail { font-size: 14px; color: #b0d4ff; line-height: 1.6; text-align: center; white-space: pre-line; }
+        .result-detail .highlight { color: #ffd866; font-weight: 600; }
+        .result-achievements { display: flex; flex-wrap: wrap; justify-content: center; gap: 6px; margin: 2px 0 10px; }
+        .result-ach { 
+            background: rgba(255,215,0,0.12); 
+            border: 1px solid rgba(255,215,0,0.2); 
+            border-radius: 30px; 
+            padding: 2px 12px; 
+            font-size: 12px; 
+            color: #ffd866; 
+            display: flex; 
+            align-items: center; 
+            gap: 4px; 
+        }
+        .result-btn { 
+            background: linear-gradient(145deg, #ffd866, #f5b842); 
+            border: none; 
+            border-radius: 60px; 
+            padding: 10px 36px; 
+            font-size: 17px; 
+            font-weight: 700; 
+            color: #1a2f44; 
+            cursor: pointer; 
+            transition: 0.15s; 
+            box-shadow: 0 6px 24px rgba(255,216,102,0.25); 
+            margin-top: 2px; 
+        }
+        .result-btn:hover { transform: scale(1.04); }
+        .result-btn:active { transform: scale(0.96); }
+
+        /* ===== 底部控制栏 ===== */
+        .controls { 
+            display: flex; 
+            flex-wrap: wrap; 
+            justify-content: center; 
+            align-items: center; 
+            gap: 12px 20px; 
+            margin-top: 16px; 
+        }
+        .ctrl-group { display: flex; align-items: center; gap: 8px; }
+        .ctrl-btn { 
+            background: linear-gradient(145deg, #1e3a5a, #102a44); 
+            border: none; 
+            border-radius: 40px; 
+            padding: 10px 22px; 
+            font-size: 18px; 
+            font-weight: 700; 
+            color: #c8e2ff; 
+            cursor: pointer; 
+            transition: all 0.1s; 
+            box-shadow: 0 4px 0 #07121f, 0 4px 12px rgba(0,0,0,0.4); 
+            border: 1px solid rgba(100,180,255,0.06); 
+            touch-action: none; 
+            min-width: 64px; 
+            display: flex; 
+            align-items: center; 
+            justify-content: center; 
+            gap: 6px; 
+        }
+        .ctrl-btn:active { transform: translateY(3px); box-shadow: 0 1px 0 #07121f; }
+        .ctrl-btn.traction { background: linear-gradient(145deg, #2a7a5a, #1a5a3e); border-color: rgba(100,255,180,0.15); color: #b0ffd6; }
+        .ctrl-btn.brake { background: linear-gradient(145deg, #7a4a4a, #5a2e2e); border-color: rgba(255,150,150,0.15); color: #ffc8c8; }
+        .ctrl-btn:disabled { opacity: 0.35; transform: translateY(2px); box-shadow: 0 2px 0 #07121f; pointer-events: none; }
+        .ctrl-btn .icon { font-size: 20px; line-height: 1; }
+        .ctrl-btn.menu-btn { 
+            background: rgba(255,255,255,0.06); 
+            color: #b0d4ff; 
+            box-shadow: 0 4px 0 #07121f; 
+            border: 1px solid rgba(100,180,255,0.08); 
+            min-width: 50px; 
+            padding: 10px 16px; 
+        }
+        .ctrl-btn.menu-btn:active { transform: translateY(3px); box-shadow: 0 1px 0 #07121f; }
+
+        .handle-display { 
+            display: flex; 
+            align-items: center; 
+            gap: 12px; 
+            background: rgba(0,20,40,0.5); 
+            padding: 4px 18px 4px 16px; 
+            border-radius: 40px; 
+            border: 1px solid rgba(100,180,255,0.06); 
+        }
+        .handle-display .label { color: #8bb8e8; font-size: 13px; font-weight: 500; }
+        .handle-display .handle-value { 
+            font-size: 22px; 
+            font-weight: 800; 
+            min-width: 40px; 
+            text-align: center; 
+            color: #d4edff; 
+        }
+        .handle-display .handle-value.traction { color: #7dffb3; }
+        .handle-display .handle-value.brake { color: #ff8a8a; }
+        .handle-display .handle-value.neutral { color: #bbd0e0; }
+
+        .hint { 
+            color: #4a7a9a; 
+            font-size: 13px; 
+            text-align: center; 
+            margin-top: 12px; 
+            opacity: 0.8; 
+        }
+        .hint kbd { 
+            background: rgba(255,255,255,0.06); 
+            padding: 1px 10px; 
+            border-radius: 6px; 
+            border: 1px solid rgba(255,255,255,0.06); 
+            font-family: inherit; 
+            color: #b0d4ff; 
+        }
+
+        .toast { 
+            position: absolute; 
+            top: 20px; 
+            left: 50%; 
+            transform: translateX(-50%); 
+            background: rgba(0,0,0,0.85); 
+            backdrop-filter: blur(8px); 
+            color: #ffd866; 
+            padding: 8px 24px; 
+            border-radius: 40px; 
+            font-size: 16px; 
+            font-weight: 600; 
+            border: 1px solid rgba(255,215,0,0.2); 
+            z-index: 40; 
+            opacity: 0; 
+            transition: opacity 0.3s; 
+            pointer-events: none; 
+            white-space: nowrap; 
+            display: flex; 
+            align-items: center; 
+            gap: 10px; 
+        }
+        .toast.show { opacity: 1; }
+
+        /* ========== 移动端适配 ========== */
+        @media (max-width: 750px) {
+            .game-container { padding: 12px 10px 16px; border-radius: 24px; }
+            .title { font-size: 18px; }
+            .title small { font-size: 12px; padding: 0 10px; }
+            .info-panel { gap: 6px 10px; padding: 4px 10px; }
+            .info-item { font-size: 12px; }
+            .info-item .val { font-size: 17px; min-width: 3.5em; }
+            .status-badge { font-size: 11px; padding: 2px 10px; }
+            .overlay { padding: 20px; }
+            .overlay .icon { font-size: 48px; }
+            .overlay .main-text { font-size: 22px; }
+            .overlay .sub-text { font-size: 14px; }
+            .overlay .route-info { font-size: 15px; padding: 4px 14px; }
+            .overlay-btn { padding: 8px 24px; font-size: 16px; min-width: 100px; }
+            .level-card { width: 100px; padding: 6px 10px; }
+            .vehicle-card { min-width: 80px; padding: 6px 8px; }
+            .achievement-item { width: 100%; min-width: 0; }  /* 成就列表单列 */
+            .controls { gap: 8px; }
+            .ctrl-btn { padding: 8px 14px; font-size: 15px; min-width: 50px; }
+            .ctrl-btn.menu-btn { padding: 8px 12px; min-width: 40px; }
+            .handle-display { padding: 2px 12px; }
+            .handle-display .handle-value { font-size: 18px; min-width: 30px; }
+            .hint { font-size: 11px; }
+            .result-icon { font-size: 40px; }
+            .result-title { font-size: 20px; }
+            .result-score { font-size: 36px; }
+            .result-detail-box { padding: 8px 14px; }
+            .result-detail { font-size: 13px; }
+            .result-btn { padding: 8px 24px; font-size: 15px; }
+        }
+
+        @media (max-width: 480px) {
+            .game-container { padding: 8px 6px 12px; border-radius: 16px; }
+            .header { flex-direction: column; align-items: stretch; gap: 4px; }
+            .title { font-size: 16px; justify-content: center; }
+            .info-panel { justify-content: center; flex-wrap: wrap; }
+            .info-item .val { font-size: 15px; min-width: 3em; }
+            .controls { gap: 6px; }
+            .ctrl-btn { padding: 6px 12px; font-size: 13px; min-width: 44px; }
+            .ctrl-btn .icon { font-size: 16px; }
+            .handle-display { padding: 2px 8px; }
+            .handle-display .label { font-size: 11px; }
+            .handle-display .handle-value { font-size: 16px; min-width: 24px; }
+            .overlay .icon { font-size: 40px; }
+            .overlay .main-text { font-size: 18px; }
+            .overlay .sub-text { font-size: 12px; }
+            .overlay .route-info { font-size: 13px; }
+            .overlay-btn { font-size: 14px; padding: 6px 16px; min-width: 80px; }
+            .level-grid, .vehicle-grid, .achievement-list { max-height: 160px; }
+            .level-card { width: 80px; padding: 4px 6px; }
+            .level-card .lv-icon { font-size: 20px; }
+            .level-card .lv-name { font-size: 11px; }
+            .level-card .lv-desc { font-size: 9px; }
+            .vehicle-card { min-width: 70px; padding: 4px 6px; }
+            .vehicle-card .v-icon { font-size: 20px; }
+            .vehicle-card .v-name { font-size: 11px; }
+            .vehicle-card .v-desc { font-size: 9px; }
+            .achievement-item { font-size: 12px; padding: 4px 10px; }
+            .result-icon { font-size: 32px; }
+            .result-title { font-size: 16px; }
+            .result-score { font-size: 30px; }
+            .result-detail-box { padding: 6px 10px; }
+            .result-detail { font-size: 12px; }
+            .result-btn { font-size: 13px; padding: 6px 18px; }
+            .hint { font-size: 10px; }
+            .hint kbd { padding: 0 6px; }
+        }
+
+        /* ===== 竖屏（portrait）适配：画布拉长 ===== */
+        @media (orientation: portrait) {
+            .canvas-wrapper {
+                /* 竖屏时让画布占据更多高度，通过调整宽高比实现拉长效果 */
+                aspect-ratio: 1 / 1;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+            }
+
+            .canvas-wrapper > canvas {
+                width: 100%;
+                height: auto;
+                aspect-ratio: 1000 / 420;
+            }
+        }
+        /* 横屏保留原比例 */
+        @media (orientation: landscape) {
+            .canvas-wrapper {
+                aspect-ratio: 1000 / 420;
+            }
+            canvas {
+                aspect-ratio: 1000 / 420;
+            }
+        }
+    
