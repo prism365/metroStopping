@@ -36,7 +36,7 @@
                 <div class="row-buttons">
                     <button class="overlay-btn secondary small" id="levelMenuBtn">🗺️ 关卡</button>
                     <button class="overlay-btn secondary small" id="vehicleMenuBtn">🚆 车辆</button>
-                    <button class="overlay-btn secondary small" id="achievementMenuBtn2">🏆 成就</button>
+                    <button class="overlay-btn secondary small" id="achievementMenuBtn">🏆 成就</button>
                     <button class="overlay-btn secondary small" id="aboutMenuBtn">ℹ️ 关于</button>
                 </div>
             </div>
@@ -72,12 +72,12 @@
             <button class="overlay-btn secondary" id="closeAboutViewBtn">返回</button>
         </div>
         <!-- 成就查看 -->
-        <div class="overlay hidden" id="achievementView2">
-            <button class="close-btn" id="closeAchievementBtn2">✕</button>
+        <div class="overlay hidden" id="achievementView">
+            <button class="close-btn" id="closeAchievementBtn">✕</button>
             <div class="icon">🏆</div>
             <div class="main-text md">成就</div>
-            <div class="achievement-list" id="achievementListContainer2"></div>
-            <button class="overlay-btn secondary" id="closeAchievementView2Btn">返回</button>
+            <div class="achievement-list" id="achievementListContainer"></div>
+            <button class="overlay-btn secondary" id="closeAchievementViewBtn">返回</button>
         </div>
         <!-- 倒计时 -->
         <div class="overlay hidden" id="countdownOverlay">
@@ -132,8 +132,6 @@
     </div>
 </div>
 
-    <script src="src/game/data.js"></script>
-    <script src="src/game/storage.js"></script>
-    <script src="src/game/main.js"></script>
+    <script type="module" src="src/game/main.js"></script>
 </body>
 </html>

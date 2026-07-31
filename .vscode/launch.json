@@ -2,11 +2,21 @@
   "version": "0.2.0",
   "configurations": [
     {
-      "name": "Launch Chrome",
-      "type": "chrome",
+      "name": "Debug in Edge (http://localhost:8000)",
+      "type": "pwa-msedge",
       "request": "launch",
-      "file": "${workspaceFolder}/index.html",
-      "webRoot": "${workspaceFolder}"
+      "url": "http://localhost:8000",
+      "webRoot": "${workspaceFolder}",
+      "preLaunchTask": "serve-metro-stopping"
     }
+    // 备选：使用 Chrome 时取消注释下面这段，并注释掉上方 Edge 配置
+    // {
+    //   "name": "Debug in Chrome (http://localhost:8000)",
+    //   "type": "pwa-chrome",
+    //   "request": "launch",
+    //   "url": "http://localhost:8000",
+    //   "webRoot": "${workspaceFolder}",
+    //   "preLaunchTask": "serve-metro-stopping"
+    // }
   ]
 }

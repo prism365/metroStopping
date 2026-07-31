@@ -1,5 +1,5 @@
 // 成就设计
-const ACHIEVEMENTS = {
+export const ACHIEVEMENTS = {
     precision: { id: 'precision', name: '精准停靠', icon: '🎯', desc: '偏差 ≤ 0.15m', unlocked: false },
     one_brake: { id: 'one_brake', name: '一把闸', icon: '🛑', desc: '一次制动到位', unlocked: false },
     smooth: { id: 'smooth', name: '平稳大师', icon: '🧘', desc: '最大减速度 < 1.0 m/s²', unlocked: false },
@@ -9,7 +9,7 @@ const ACHIEVEMENTS = {
 };
 
 // 关卡设计
-const LEVELS = [{
+export const LEVELS = [{
     id: 0,
     name: '训练场',
     desc: '平地，无特殊',
@@ -110,7 +110,7 @@ const LEVELS = [{
 
 
 // 车辆数值
-const VEHICLES = {
+export const VEHICLES = {
     STANDARD: {
         id: 'STANDARD',
         name: '标准型',
@@ -193,66 +193,105 @@ const VEHICLES = {
 };
 
 // 物理常数
-const BASE_TRACTION_ACCEL = 0.85;
-const BASE_BRAKE_ACCEL = 0.90;
-const BASE_FRICTION_DECEL = 0.06;
-const BASE_AIR_RESISTANCE = 0.004;
+export const BASE_TRACTION_ACCEL = 0.85;
+export const BASE_BRAKE_ACCEL = 0.90;
+export const BASE_FRICTION_DECEL = 0.06;
+export const BASE_AIR_RESISTANCE = 0.004;
 
 // 手柄操作范围
-const MAX_PLAYER_HANDLE = 5;
-const MAX_ATC_HANDLE = 3;
+export const MAX_PLAYER_HANDLE = 5;
+export const MAX_ATC_HANDLE = 3;
 
 // 手柄响应速率
-const HANDLE_RESPONSE_RATE_UP = 4.0;
-const HANDLE_RESPONSE_RATE_DOWN = 1.2;
-const HANDLE_RELEASE_RATE = 4.0;
+export const HANDLE_RESPONSE_RATE_UP = 4.0;
+export const HANDLE_RESPONSE_RATE_DOWN = 1.2;
+export const HANDLE_RELEASE_RATE = 4.0;
 
 // 站台参数
-const PLATFORM_START = 0;
-const PLATFORM_END = 100;
+export const PLATFORM_START = 0;
+export const PLATFORM_END = 100;
 
 // 列车几何参数
-const TRAIN_LENGTH = 100;
-const NUM_CARS = 10;
-const CAR_LENGTH = TRAIN_LENGTH / NUM_CARS;
-const DOORS_PER_CAR = 2;
-const TOTAL_DOORS = NUM_CARS * DOORS_PER_CAR;
-const DOOR_SPACING = CAR_LENGTH / DOORS_PER_CAR;
-const TARGET_HEAD_POS = PLATFORM_END;
+export const TRAIN_LENGTH = 100;
+export const NUM_CARS = 10;
+export const CAR_LENGTH = TRAIN_LENGTH / NUM_CARS;
+export const DOORS_PER_CAR = 2;
+export const TOTAL_DOORS = NUM_CARS * DOORS_PER_CAR;
+export const DOOR_SPACING = CAR_LENGTH / DOORS_PER_CAR;
+export const TARGET_HEAD_POS = PLATFORM_END;
+
+// 屏蔽门位置偏移（相对车头）
+export const DOOR_OFFSETS = [];
+for (let i = 0; i < TOTAL_DOORS; i++) {
+    DOOR_OFFSETS.push(DOOR_SPACING / 2 + i * DOOR_SPACING);
+}
 
 // 游戏视口与初始速度、停止速度参数
-const VIEWPORT_WIDTH_METERS = 95;
-const BASE_SPEED = 15.0;
-const SPEED_RANDOM_RANGE = 2.78;
-const MIN_SPEED = 0.01;
+export const VIEWPORT_WIDTH_METERS = 95;
+export const BASE_SPEED = 15.0;
+export const SPEED_RANDOM_RANGE = 2.78;
+export const MIN_SPEED = 0.01;
 
-// 全局数据出口
-window.GAME_DATA = {
-    ACHIEVEMENTS,
-    LEVELS,
-    VEHICLES,
-    PHYSICS: {
-        BASE_TRACTION_ACCEL,
-        BASE_BRAKE_ACCEL,
-        BASE_FRICTION_DECEL,
-        BASE_AIR_RESISTANCE,
-        MAX_PLAYER_HANDLE,
-        MAX_ATC_HANDLE,
-        MIN_SPEED,
-        PLATFORM_START,
-        PLATFORM_END,
-        TRAIN_LENGTH,
-        NUM_CARS,
-        CAR_LENGTH,
-        DOORS_PER_CAR,
-        TOTAL_DOORS,
-        DOOR_SPACING,
-        TARGET_HEAD_POS,
-        VIEWPORT_WIDTH_METERS,
-        BASE_SPEED,
-        SPEED_RANDOM_RANGE,
-        HANDLE_RESPONSE_RATE_UP,
-        HANDLE_RESPONSE_RATE_DOWN,
-        HANDLE_RELEASE_RATE
-    }
+// ATC 自动驾驶参数
+export const ATC = {
+    cruiseDist: 150,
+    midDist: 50,
+    finalDist: 5,
+
+    cruiseSpeed: 15.0,
+    midSpeed: 11.8,
+    finalSpeed: 1.8,
+
+    Kp: 0.85,
+    Ki: 0.05,
+    Kd: 0.2,
+    integralLimit: 1.5,
+    accelLimit: 3.5,
+
+    handleResponseDelay: 0.04,
+};
+
+// 评分与乘客评价阈值
+export const SCORING = {
+    PERFECT_DEV: 0.15,
+    GOOD_DEV: 0.4,
+    FAIR_DEV: 0.8,
+    PASS_DEV: 1.0,
+
+    BASE_PERFECT: 95,
+    BASE_GOOD: 80,
+    BASE_FAIR: 65,
+    BASE_PASS: 50,
+
+    SMOOTH_MAX_DECEL: 1.0,
+    SMOOTH_MAX_CHANGES: 4,
+    HARD_BRAKE_DECEL: 2.0,
+    JERKY_CHANGES: 12,
+    JERKY_DECEL: 1.5,
+
+    SLOW_TIME: 20.0,
+    FAST_TIME: 14.0,
+    PERFECT_TIME_MIN: 15.5,
+    PERFECT_TIME_MAX: 18.5,
+
+    STYLE_BONUS_SMOOTH_PERFECT: 8,
+    STYLE_BONUS_SMOOTH: 4,
+    STYLE_BONUS_PERFECT_TIME: 4,
+    STYLE_BONUS_FAST: 2,
+    STYLE_BONUS_HARD_BRAKE: -8,
+    STYLE_BONUS_SLOW: -5,
+    STYLE_BONUS_JERKY: -10,
+};
+
+// 成就判定阈值
+export const ACHIEVEMENT_RULES = {
+    PRECISION_DEV: 0.15,
+    SMOOTH_MAX_DECEL: 1.0,
+    TIME_MASTER_MIN: 16.0,
+    TIME_MASTER_MAX: 17.0,
+    RELEASE_MAX_DT: 3.0,
+    RELEASE_MAX_POS: 5.0,
+    RELEASE_MAX_SPEED: 3.0,
+    ONE_BRAKE_MAX_CHANGES: 5,
+    VETERAN_GAMES: 20,
 };
