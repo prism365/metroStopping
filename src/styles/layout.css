@@ -1,0 +1,280 @@
+/* ============================================================
+   布局：游戏容器 / 头部 / 画布 / 底部控制栏
+   ============================================================ */
+
+/* ---------- 游戏容器 ---------- */
+.game-container {
+  background: linear-gradient(165deg, var(--bg-panel), var(--bg-panel-deep));
+  border-radius: var(--radius-lg);
+  padding: 20px 20px 26px;
+  box-shadow: var(--shadow-panel);
+  max-width: 1100px;
+  width: 100%;
+  border: 1px solid var(--border-blue-weak);
+  position: relative;
+}
+
+/* ---------- 头部 ---------- */
+.header {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0 4px 12px 4px;
+  gap: 8px;
+}
+
+.title {
+  color: var(--text-main);
+  font-size: 22px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.title small {
+  font-size: 14px;
+  font-weight: 400;
+  background: var(--gold-bg);
+  padding: 2px 14px;
+  border-radius: 30px;
+  color: var(--gold);
+  border: 1px solid var(--gold-border);
+}
+
+.info-panel {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px 18px;
+  background: var(--panel-bg);
+  padding: 4px 16px 4px 20px;
+  border-radius: 40px;
+  backdrop-filter: blur(4px);
+  border: 1px solid var(--border-blue);
+}
+
+.info-item {
+  display: flex;
+  align-items: baseline;
+  gap: 4px;
+  color: var(--text-dim);
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.info-item .val {
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--text-bright);
+  min-width: 4.5em;
+  text-align: center;
+  font-variant-numeric: tabular-nums;
+  display: inline-block;
+}
+
+.info-item .val.speed { color: var(--blue); }
+.info-item .val.deviation { color: var(--gold); }
+.info-item .val.deviation.perfect { color: var(--green); }
+.info-item .val.deviation.good { color: var(--green-soft); }
+.info-item .val.deviation.fair { color: var(--orange); }
+.info-item .val.deviation.poor { color: var(--red); }
+
+.info-item .unit {
+  font-size: 12px;
+  color: var(--text-faint);
+  margin-left: 2px;
+}
+
+.status-badge {
+  font-size: 13px;
+  padding: 4px 16px;
+  border-radius: 30px;
+  font-weight: 600;
+  background: var(--blue-bg);
+  color: var(--blue);
+  border: 1px solid var(--blue-border);
+  white-space: nowrap;
+}
+
+.status-badge.ready {
+  background: var(--gold-bg);
+  color: var(--gold);
+  border-color: var(--gold-border);
+}
+
+.status-badge.running {
+  background: var(--blue-bg-strong);
+  color: var(--blue);
+}
+
+.status-badge.stopped {
+  background: var(--green-bg);
+  color: var(--green);
+  border-color: var(--green-border);
+}
+
+.status-badge.fail {
+  background: var(--red-bg);
+  color: var(--red);
+  border-color: var(--red-border);
+}
+
+/* ---------- Canvas 容器 & 画布 ---------- */
+.canvas-wrapper {
+  position: relative;
+  background: var(--bg-deep);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  box-shadow: var(--shadow-canvas);
+  touch-action: none;
+  width: 100%;
+  /* 默认宽度由画布撑起，竖屏时通过媒体查询覆盖 */
+}
+
+canvas {
+  display: block;
+  width: 100%;
+  height: auto;
+  aspect-ratio: var(--canvas-ratio);
+  touch-action: none;
+  cursor: pointer;
+}
+
+/* ---------- 底部控制栏 ---------- */
+.controls {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  align-items: center;
+  gap: 12px 20px;
+  margin-top: 16px;
+}
+
+.ctrl-group {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.ctrl-btn {
+  background: linear-gradient(145deg, var(--ctrl-bg-start), var(--ctrl-bg-end));
+  border: 1px solid var(--border-blue-faint);
+  border-radius: 40px;
+  padding: 10px 22px;
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--text-main);
+  cursor: pointer;
+  transition: all 0.1s;
+  box-shadow: var(--shadow-ctrl);
+  touch-action: none;
+  min-width: 64px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+}
+
+.ctrl-btn:active {
+  transform: translateY(3px);
+  box-shadow: 0 1px 0 var(--ctrl-shadow);
+}
+
+.ctrl-btn.traction {
+  background: linear-gradient(145deg, var(--traction-start), var(--traction-end));
+  border-color: var(--traction-border);
+  color: var(--traction-text);
+}
+
+.ctrl-btn.brake {
+  background: linear-gradient(145deg, var(--brake-start), var(--brake-end));
+  border-color: var(--brake-border);
+  color: var(--brake-text);
+}
+
+.ctrl-btn:disabled {
+  opacity: 0.35;
+  transform: translateY(2px);
+  box-shadow: 0 2px 0 var(--ctrl-shadow);
+  pointer-events: none;
+}
+
+.ctrl-btn .icon {
+  font-size: 20px;
+  line-height: 1;
+}
+
+.ctrl-btn.menu-btn {
+  background: var(--card-bg);
+  color: var(--text-secondary);
+  box-shadow: 0 4px 0 var(--ctrl-shadow);
+  border: 1px solid var(--border-blue);
+  min-width: 50px;
+  padding: 10px 16px;
+}
+
+.ctrl-btn.menu-btn:active {
+  transform: translateY(3px);
+  box-shadow: 0 1px 0 var(--ctrl-shadow);
+}
+
+/* 重置按钮（原 HTML 内联样式提取） */
+.ctrl-btn.reset {
+  background: #2a3a4a;
+  color: var(--text-secondary);
+}
+
+/* ---------- 手柄显示 ---------- */
+.handle-display {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: var(--panel-bg);
+  padding: 4px 18px 4px 16px;
+  border-radius: 40px;
+  border: 1px solid var(--border-blue-faint);
+}
+
+.handle-display .label {
+  color: var(--text-dim);
+  font-size: 13px;
+  font-weight: 500;
+}
+
+.handle-display .handle-value {
+  font-size: 22px;
+  font-weight: 800;
+  min-width: 40px;
+  text-align: center;
+  color: var(--text-bright);
+}
+
+.handle-display .handle-value.traction { color: var(--green); }
+.handle-display .handle-value.brake { color: var(--red); }
+.handle-display .handle-value.neutral { color: var(--neutral); }
+
+/* 手柄说明文字（原 HTML 内联样式提取） */
+.handle-display .handle-hint {
+  color: var(--text-faint);
+  font-size: 13px;
+}
+
+/* ---------- 键盘提示 ---------- */
+.hint {
+  color: var(--text-hint);
+  font-size: 13px;
+  text-align: center;
+  margin-top: 12px;
+  opacity: 0.8;
+}
+
+.hint kbd {
+  background: var(--card-bg);
+  padding: 1px 10px;
+  border-radius: var(--radius-xs);
+  border: 1px solid var(--card-border);
+  font-family: inherit;
+  color: var(--text-secondary);
+}

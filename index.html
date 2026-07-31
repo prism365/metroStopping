@@ -3,9 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <link rel="icon" href="metro.ico" type="image/x-icon">
+    <link rel="icon" href="resource\metro.ico" type="image/x-icon">
     <title>地铁停靠</title>
-    <link rel="stylesheet" href="src/styles/main.css">
+    <link rel="stylesheet" href="src/styles/variables.css">
+    <link rel="stylesheet" href="src/styles/base.css">
+    <link rel="stylesheet" href="src/styles/layout.css">
+    <link rel="stylesheet" href="src/styles/components.css">
+    <link rel="stylesheet" href="src/styles/responsive.css">
 </head>
 <body>
 
@@ -41,7 +45,7 @@
         <div class="overlay hidden" id="levelView">
             <button class="close-btn" id="closeLevelBtn">✕</button>
             <div class="icon">🗺️</div>
-            <div class="main-text" style="font-size:24px;">选择关卡</div>
+            <div class="main-text md">选择关卡</div>
             <div class="level-grid" id="levelGridContainer"></div>
             <button class="overlay-btn secondary" id="closeLevelViewBtn">返回</button>
         </div>
@@ -49,7 +53,7 @@
         <div class="overlay hidden" id="vehicleView">
             <button class="close-btn" id="closeVehicleBtn">✕</button>
             <div class="icon">🚆</div>
-            <div class="main-text" style="font-size:24px;">车辆图鉴</div>
+            <div class="main-text md">车辆图鉴</div>
             <div class="vehicle-grid" id="vehicleGridContainer"></div>
             <button class="overlay-btn secondary" id="closeVehicleViewBtn">返回</button>
         </div>
@@ -57,8 +61,8 @@
         <div class="overlay hidden" id="aboutView">
             <button class="close-btn" id="closeAboutBtn">✕</button>
             <div class="icon">ℹ️</div>
-            <div class="main-text" style="font-size:24px;">关于</div>
-            <div class="sub-text" style="margin-bottom:16px;line-height:1.6;max-width:420px;">
+            <div class="main-text md">关于</div>
+            <div class="sub-text about">
                 一个简单的地铁停靠游戏，主要基于 Deepseek V4 对话实现，并手动润色。<br>
                 开发者：Prism powered by Vibe Coding : )<br>
                 版本信息：1.0.1<br>
@@ -71,7 +75,7 @@
         <div class="overlay hidden" id="achievementView2">
             <button class="close-btn" id="closeAchievementBtn2">✕</button>
             <div class="icon">🏆</div>
-            <div class="main-text" style="font-size:24px;">成就</div>
+            <div class="main-text md">成就</div>
             <div class="achievement-list" id="achievementListContainer2"></div>
             <button class="overlay-btn secondary" id="closeAchievementView2Btn">返回</button>
         </div>
@@ -93,6 +97,7 @@
             <div class="result-achievements" id="resultAchievements"></div>
             <button class="result-btn" id="resultBtn">🔄 下一关</button>
         </div>
+        <!-- 提示框 -->
         <div class="toast" id="toast"></div>
         <div class="modal-overlay hidden" id="confirmModal">
             <div class="modal-card">
@@ -106,6 +111,7 @@
         </div>
     </div>
 
+    <!-- 控制面板 -->
     <div class="controls">
         <div class="ctrl-group">
             <button class="ctrl-btn traction" id="upBtn">⬆ 加速</button>
@@ -114,11 +120,11 @@
         <div class="handle-display">
             <span class="label">手柄</span>
             <span class="handle-value" id="handleValue">0</span>
-            <span style="color:#5a8aaa; font-size:13px;">(牵引 / 制动)</span>
+            <span class="handle-hint">(牵引 / 制动)</span>
         </div>
         <div class="ctrl-group">
             <button class="ctrl-btn menu-btn" id="menuReturnBtn">🏠</button>
-            <button class="ctrl-btn" id="resetBtn" style="background:#2a3a4a; color:#b0d4ff;">⟳ 重置</button>
+            <button class="ctrl-btn reset" id="resetBtn">⟳ 重置</button>
         </div>
     </div>
     <div class="hint">
@@ -126,8 +132,8 @@
     </div>
 </div>
 
-</body>
     <script src="src/game/data.js"></script>
     <script src="src/game/storage.js"></script>
     <script src="src/game/main.js"></script>
+</body>
 </html>

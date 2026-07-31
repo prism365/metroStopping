@@ -1,0 +1,91 @@
+/* ============================================================
+   设计变量 (Design Tokens)
+   集中管理颜色、层级、圆角、阴影等，便于整体换肤与维护
+   ============================================================ */
+
+:root {
+  /* ---------- 背景 ---------- */
+  --bg-deep: #0b1926;                 /* 页面 / 画布底色 */
+  --bg-panel: #102433;                /* 容器渐变起始 */
+  --bg-panel-deep: #081520;           /* 容器渐变结束 */
+  --panel-bg: rgba(0, 20, 40, 0.5);   /* 信息面板 / 手柄半透明底 */
+
+  /* ---------- 品牌色 ---------- */
+  --gold: #ffd866;                    /* 主强调（金色） */
+  --gold-deep: #f5b842;               /* 金色渐变末端 */
+  --gold-bg: rgba(255, 215, 0, 0.12);
+  --gold-border: rgba(255, 215, 0, 0.15);
+  --gold-border-strong: rgba(255, 215, 0, 0.2);
+  --gold-glow: rgba(255, 216, 102, 0.25);
+
+  --blue: #7fc8ff;                    /* 速度 / 运行态 */
+  --blue-bg: rgba(100, 200, 255, 0.08);
+  --blue-bg-strong: rgba(100, 200, 255, 0.12);
+  --blue-border: rgba(100, 200, 255, 0.1);
+  --border-blue: rgba(100, 180, 255, 0.08);
+  --border-blue-faint: rgba(100, 180, 255, 0.06);
+  --border-blue-weak: rgba(80, 180, 255, 0.08);
+
+  --green: #7dffb3;                   /* 成功 / 停靠 / 牵引 */
+  --green-soft: #aaffaa;
+  --green-bg: rgba(125, 255, 179, 0.12);
+  --green-bg-weak: rgba(125, 255, 179, 0.05);
+  --green-border: rgba(125, 255, 179, 0.2);
+
+  --orange: #ffa94d;                  /* 偏差一般 */
+  --red: #ff6b6b;                     /* 失败 / 偏差差 */
+  --red-bg: rgba(255, 107, 107, 0.12);
+  --red-border: rgba(255, 107, 107, 0.2);
+
+  /* ---------- 文本 ---------- */
+  --text-white: #ffffff;
+  --text-bright: #d4edff;
+  --text-main: #c8e2ff;
+  --text-secondary: #b0d4ff;
+  --text-dim: #8bb8e8;
+  --text-faint: #5a8aaa;
+  --text-hint: #4a7a9a;
+
+  /* ---------- 卡片 / 按钮 ---------- */
+  --card-bg: rgba(255, 255, 255, 0.05);
+  --card-bg-hover: rgba(255, 255, 255, 0.15);
+  --card-border: rgba(255, 255, 255, 0.05);
+
+  --ctrl-bg-start: #1e3a5a;
+  --ctrl-bg-end: #102a44;
+  --ctrl-shadow: #07121f;
+
+  --traction-start: #2a7a5a;
+  --traction-end: #1a5a3e;
+  --traction-border: rgba(100, 255, 180, 0.15);
+  --traction-text: #b0ffd6;
+
+  --brake-start: #7a4a4a;
+  --brake-end: #5a2e2e;
+  --brake-border: rgba(255, 150, 150, 0.15);
+  --brake-text: #ffc8c8;
+
+  --neutral: #bbd0e0;                 /* 手柄空挡 */
+
+  /* ---------- 层级 ---------- */
+  --z-result: 20;
+  --z-overlay: 30;
+  --z-toast: 40;
+  --z-modal: 60;
+
+  /* ---------- 圆角 ---------- */
+  --radius-lg: 36px;
+  --radius-md: 20px;
+  --radius-sm: 12px;
+  --radius-xs: 6px;
+
+  /* ---------- 阴影 ---------- */
+  --shadow-panel: 0 20px 40px rgba(0, 0, 0, 0.8);
+  --shadow-canvas: inset 0 4px 30px rgba(0, 0, 0, 0.7), 0 0 0 1px rgba(100, 180, 255, 0.04);
+  --shadow-glow: 0 6px 24px rgba(255, 216, 102, 0.25);
+  --shadow-ctrl: 0 4px 0 #07121f, 0 4px 12px rgba(0, 0, 0, 0.4);
+  --shadow-modal: 0 20px 40px rgba(0, 0, 0, 0.45);
+
+  /* ---------- 画布 ---------- */
+  --canvas-ratio: 1000 / 420;
+}

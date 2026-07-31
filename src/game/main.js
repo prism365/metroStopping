@@ -213,15 +213,27 @@
         }
 
         // ---------- 物理常量 ----------
+
+        // 物理常数
         const BASE_TRACTION_ACCEL = PHYSICS_CONFIG.BASE_TRACTION_ACCEL ?? 0.85;
         const BASE_BRAKE_ACCEL = PHYSICS_CONFIG.BASE_BRAKE_ACCEL ?? 0.90;
         const BASE_FRICTION_DECEL = PHYSICS_CONFIG.BASE_FRICTION_DECEL ?? 0.06;
         const BASE_AIR_RESISTANCE = PHYSICS_CONFIG.BASE_AIR_RESISTANCE ?? 0.004;
+
+        // 手柄操作范围
         const MAX_PLAYER_HANDLE = PHYSICS_CONFIG.MAX_PLAYER_HANDLE ?? 5;
         const MAX_ATC_HANDLE = PHYSICS_CONFIG.MAX_ATC_HANDLE ?? 3;
-        const MIN_SPEED = PHYSICS_CONFIG.MIN_SPEED ?? 0.01;
+
+        // 手柄响应速率
+        const HANDLE_RESPONSE_RATE_UP = PHYSICS_CONFIG.HANDLE_RESPONSE_RATE_UP ?? 4.0;
+        const HANDLE_RESPONSE_RATE_DOWN = PHYSICS_CONFIG.HANDLE_RESPONSE_RATE_DOWN ?? 1.2;
+        const HANDLE_RELEASE_RATE = PHYSICS_CONFIG.HANDLE_RELEASE_RATE ?? 4.0;
+
+        // 站台参数
         const PLATFORM_START = PHYSICS_CONFIG.PLATFORM_START ?? 0;
         const PLATFORM_END = PHYSICS_CONFIG.PLATFORM_END ?? 100;
+
+        // 列车几何参数
         const TRAIN_LENGTH = PHYSICS_CONFIG.TRAIN_LENGTH ?? 100;
         const NUM_CARS = PHYSICS_CONFIG.NUM_CARS ?? 10;
         const CAR_LENGTH = TRAIN_LENGTH / NUM_CARS;
@@ -233,28 +245,30 @@
             DOOR_OFFSETS.push(DOOR_SPACING / 2 + i * DOOR_SPACING);
         }
         const TARGET_HEAD_POS = PHYSICS_CONFIG.TARGET_HEAD_POS ?? PLATFORM_END;
+
+        // 游戏视口与初始速度、停止速度参数
         const VIEWPORT_WIDTH_METERS = PHYSICS_CONFIG.VIEWPORT_WIDTH_METERS ?? 95;
         const BASE_SPEED = PHYSICS_CONFIG.BASE_SPEED ?? 15.0;
         const SPEED_RANDOM_RANGE = PHYSICS_CONFIG.SPEED_RANDOM_RANGE ?? 2.78;
-
-        const HANDLE_RESPONSE_RATE_UP = PHYSICS_CONFIG.HANDLE_RESPONSE_RATE_UP ?? 4.0;
-        const HANDLE_RESPONSE_RATE_DOWN = PHYSICS_CONFIG.HANDLE_RESPONSE_RATE_DOWN ?? 1.2;
-        const HANDLE_RELEASE_RATE = PHYSICS_CONFIG.HANDLE_RELEASE_RATE ?? 4.0;
+        const MIN_SPEED = PHYSICS_CONFIG.MIN_SPEED ?? 0.01;
 
         // ---------- ATC 参数 ----------
         const ATC = {
             cruiseDist: 150,
             midDist: 50,
             finalDist: 5,
+
             cruiseSpeed: 15.0,
             midSpeed: 11.8,
             finalSpeed: 1.8,
+
             Kp: 0.85,
             Ki: 0.05,
             Kd: 0.2,
             integralLimit: 1.5,
             accelLimit: 3.5,
-            handleResponseDelay: 0.08,
+
+            handleResponseDelay: 0.04,
         };
 
         // ---------- 状态 ----------
@@ -830,7 +844,7 @@
             const delta = targetHandle - currentHandle;
             
             if (Math.abs(delta) > 0.01) {
-                const maxChange = ATC.handleResponseDelay * 10;
+                const maxChange = ATC.handleResponseDelay * 20;
                 const change = Math.sign(delta) * Math.min(Math.abs(delta), maxChange * dt);
                 state.handle += change;
             } else {
