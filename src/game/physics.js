@@ -15,6 +15,7 @@ import {
     TRAIN_LENGTH,
     MIN_SPEED,
     ATC,
+    WIND,
 } from './data.js';
 import { state, getLevelParams, getVehicleParams } from './state.js';
 // 注：与 flow.js 存在运行期单向引用（physicsUpdate 调用 endGame），ESM live binding 安全。
@@ -22,9 +23,7 @@ import { endGame } from './flow.js';
 import { showToast, updateUI } from './ui.js';
 import { drawScene } from './render.js';
 
-// 大风区随机风速幅度
-const WIND_BASE_MAGNITUDE = 8.0;
-const WIND_RANDOM_RANGE = 6.0;
+// 大风区随机风速幅度（参数集中在 data.js WIND）
 
 // ---------- 路况重叠效应（坡度、积水）----------
 // 计算列车车身与路况区域的重叠比例加权效应（physicsUpdate / updateATC 共用）
@@ -82,7 +81,7 @@ function getWindSpeedForZones(zones, trainHead, trainTail) {
             const zoneKey = zone.id || `${zone.start}:${zone.end}:${zone.type}`;
             let baseWind = state.windBases[zoneKey] || 0;
             if (baseWind === 0) {
-                const magnitude = WIND_BASE_MAGNITUDE + Math.random() * WIND_RANDOM_RANGE;
+                const magnitude = WIND.baseMagnitude + Math.random() * WIND.randomRange;
                 const sign = Math.random() > 0.5 ? 1 : -1;
                 baseWind = sign * magnitude;
                 state.windBases[zoneKey] = baseWind;

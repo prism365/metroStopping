@@ -3,7 +3,7 @@
   "configurations": [
     {
       "name": "Debug in Edge (http://localhost:8000)",
-      "type": "pwa-msedge",
+      "type": "msedge",
       "request": "launch",
       "url": "http://localhost:8000",
       "webRoot": "${workspaceFolder}",

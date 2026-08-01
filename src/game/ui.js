@@ -43,7 +43,11 @@ export function updateUI() {
         statusBadge.textContent = '🚆 行驶中';
         statusBadge.className = 'status-badge running';
     } else if (state.ended) {
-        // handled
+        // 结算结果由 flow.endGame 写入 state.resultStatus（数据驱动，避免重复 DOM 赋值）
+        if (state.resultStatus) {
+            statusBadge.textContent = state.resultStatus.text;
+            statusBadge.className = 'status-badge ' + state.resultStatus.cls;
+        }
     } else {
         statusBadge.textContent = '⏸ 待发车';
         statusBadge.className = 'status-badge';

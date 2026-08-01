@@ -17,20 +17,18 @@ export const state = {
     countdown: 3,
     countdownActive: false,
     stopTimer: 0,
-    lastTimestamp: 0,
     maxDecel: 0,
     brakeCount: 0,
     handleChanges: 0,
-    prevHandle: 0,
     prevSpeed: 0,
     currentAccel: 0,
-    started: false,
     didRelease: false,
     lastReleaseTime: null,
     lastReleasePos: null,
     lastReleaseSpeed: null,
-    brakeStartHandle: 0,
     windSpeed: 0,
+    pendingAction: null,
+    resultStatus: null,
     atcActive: false,
     atcIntegral: 0,
     atcPrevError: 0,
@@ -62,7 +60,6 @@ export const achievements = {
 export function resetRunFields() {
     state.handle = 0;
     state.targetHandle = 0;
-    state.prevHandle = 0;
     state.score = null;
     state.deviation = null;
     state.entryTime = null;
@@ -72,18 +69,18 @@ export function resetRunFields() {
     state.brakeCount = 0;
     state.handleChanges = 0;
     state.currentAccel = 0;
-    state.started = false;
     state.didRelease = false;
     state.lastReleaseTime = null;
     state.lastReleasePos = null;
     state.lastReleaseSpeed = null;
-    state.brakeStartHandle = 0;
     state.windSpeed = 0;
     state.atcActive = false;
     state.atcIntegral = 0;
     state.atcPrevError = 0;
     state.atcTargetSpeed = 0;
     state.windBases = {};
+    state.pendingAction = null;
+    state.resultStatus = null;
 }
 
 // ---------- 街机模式随机路况生成 ----------

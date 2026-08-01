@@ -10,6 +10,7 @@ import {
     TOTAL_DOORS,
     DOOR_OFFSETS,
     VIEWPORT_WIDTH_METERS,
+    RENDER,
 } from './data.js';
 import { state, getLevelParams, getVehicleParams } from './state.js';
 import { canvas, ctx } from './dom.js';
@@ -21,14 +22,14 @@ export function drawScene() {
     ctx.clearRect(0, 0, W, H);
     const pxPerM = W / VIEWPORT_WIDTH_METERS;
     const offsetX = W / 2 - state.pos * pxPerM;
-    const trackY = 328;
+    const trackY = RENDER.trackY;
     const level = getLevelParams();
     const zones = level.zones || [];
 
     // 路况标识 (放在轨道上方)
     let zoneYOffset = 0;
-    const zoneHeight = 26;
-    const startY = trackY - 70;
+    const zoneHeight = RENDER.zoneHeight;
+    const startY = trackY - RENDER.zoneOffsetY;
 
     for (const zone of zones) {
         const zStart = zone.start;
@@ -86,8 +87,8 @@ export function drawScene() {
     }
 
     // 站台
-    const platY = 238;
-    const platH = 90;
+    const platY = RENDER.platY;
+    const platH = RENDER.platH;
     const platX1 = PLATFORM_START * pxPerM + offsetX;
     const platX2 = PLATFORM_END * pxPerM + offsetX;
     if (platX2 > -10 && platX1 < W + 10) {
@@ -163,8 +164,8 @@ export function drawScene() {
             const doorWorldX = TARGET_HEAD_POS - doorOffset;
             const doorScreenX = doorWorldX * pxPerM + offsetX;
             if (doorScreenX > -30 && doorScreenX < W + 30) {
-                const doorW = 0.9 * pxPerM;
-                const doorH = 1.8 * pxPerM;
+                const doorW = RENDER.doorW * pxPerM;
+                const doorH = RENDER.doorH * pxPerM;
                 const doorY = platY + platH - doorH - 6;
                 const isAligned = state.ended && Math.abs(state.deviation || 0) < 0.2;
                 ctx.shadowColor = isAligned ? 'rgba(125,255,179,0.3)' : 'rgba(100,200,255,0.1)';
@@ -194,7 +195,7 @@ export function drawScene() {
     }
 
     // 列车
-    const trainY = trackY - 3.4 * pxPerM - 4;
+    const trainY = trackY - RENDER.trainHeight * pxPerM - 4;
     const totalLen = TRAIN_LENGTH;
     const startX = state.pos * pxPerM + offsetX - totalLen * pxPerM;
     const accel = state.currentAccel || 0;
@@ -276,9 +277,9 @@ export function drawScene() {
 
         // 车头
         const headX = state.pos * pxPerM + offsetX;
-        const headW = 12;
+        const headW = RENDER.headW;
         const baseW = 3.4 * pxPerM * 0.8;
-        const headLen = 20;
+        const headLen = RENDER.headLen;
         ctx.fillStyle = baseColor;
         ctx.shadowColor = 'rgba(0,0,0,0.3)';
         ctx.shadowBlur = 12;

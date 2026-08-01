@@ -1,6 +1,6 @@
 // Storage helpers for achievements and progress.
-const ACHIEVEMENT_KEY = 'trainAchievements';
-const PROGRESS_KEY = 'trainProgress';
+export const ACHIEVEMENT_KEY = 'trainAchievements';
+export const PROGRESS_KEY = 'trainProgress';
 
 export function loadAchievements() {
     const saved = localStorage.getItem(ACHIEVEMENT_KEY);

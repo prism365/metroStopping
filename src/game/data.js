@@ -232,6 +232,20 @@ export const BASE_SPEED = 15.0;
 export const SPEED_RANDOM_RANGE = 2.78;
 export const MIN_SPEED = 0.01;
 
+// 画布渲染布局常量（render.js 使用）
+export const RENDER = {
+    trackY: 328,
+    zoneHeight: 26,
+    zoneOffsetY: 70,
+    platY: 238,
+    platH: 90,
+    trainHeight: 3.4,
+    headW: 12,
+    headLen: 20,
+    doorW: 0.9,
+    doorH: 1.8,
+};
+
 // ATC 自动驾驶参数
 export const ATC = {
     cruiseDist: 150,
@@ -249,6 +263,12 @@ export const ATC = {
     accelLimit: 3.5,
 
     handleResponseDelay: 0.04,
+};
+
+// 风区随机幅度（physics.js 使用）
+export const WIND = {
+    baseMagnitude: 8.0,
+    randomRange: 6.0,
 };
 
 // 评分与乘客评价阈值
