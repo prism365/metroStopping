@@ -5,10 +5,10 @@ import { loadProgress, loadAchievements } from './progress.js';
 import { physicsUpdate } from './physics.js';
 import { drawScene } from './render.js';
 import {
-    updateUI, showConfirmDialog, showMainMenu, closeView,
+    updateUI, showToast, showConfirmDialog, showMainMenu, closeView,
     showLevelView, showVehicleView, showAboutView, showAchievementView,
 } from './ui.js';
-import { resetFull, startCountdownProcess, resetAllProgress, handleResultAction } from './flow.js';
+import { resetFull, startCountdownProcess, resetAllProgress, handleResultAction, endGame } from './flow.js';
 import './input.js'; // 输入绑定（键盘/触屏/Konami）
 import {
     mainMenu, levelView, vehicleView, aboutView, achievementView,
@@ -26,11 +26,15 @@ function gameLoop(timestamp) {
     const dt = (timestamp - lastTime) / 1000;
     lastTime = timestamp;
     if (state.running && !state.ended) {
-        physicsUpdate(dt);
-    } else {
-        drawScene();
-        updateUI();
+        const result = physicsUpdate(dt);
+        if (result) {
+            // 物理层不再直接处理流程/UI：事件在此统一调度
+            if (result.atcActivated) showToast('🤖 ATC自动驾驶已激活');
+            if (result.ended) endGame(result.deviation, result.reason);
+        }
     }
+    drawScene();
+    updateUI();
     requestAnimationFrame(gameLoop);
 }
 

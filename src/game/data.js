@@ -198,9 +198,8 @@ export const BASE_BRAKE_ACCEL = 0.90;
 export const BASE_FRICTION_DECEL = 0.06;
 export const BASE_AIR_RESISTANCE = 0.004;
 
-// 手柄操作范围
+// 玩家手柄操作范围
 export const MAX_PLAYER_HANDLE = 5;
-export const MAX_ATC_HANDLE = 3;
 
 // 手柄响应速率
 export const HANDLE_RESPONSE_RATE_UP = 4.0;
@@ -252,17 +251,25 @@ export const ATC = {
     midDist: 50,
     finalDist: 5,
 
+    // ATC列车性能发生变化时，注意速度曲线也要相应调整，以避免超出列车性能范围。
     cruiseSpeed: 15.0,
     midSpeed: 11.8,
     finalSpeed: 1.8,
 
-    Kp: 0.85,
-    Ki: 0.05,
-    Kd: 0.2,
+    // PID 控制器参数
+    Kp: 1.53,
+    Ki: 0.09,
+    Kd: 0.36,
     integralLimit: 1.5,
-    accelLimit: 3.5,
+    accelLimit: 6.5,
 
-    handleResponseDelay: 0.04,
+    // 手柄换算常数
+    tractionAccel: BASE_TRACTION_ACCEL * VEHICLES.ATC.tractionFactor,
+    brakeAccel: BASE_BRAKE_ACCEL * VEHICLES.ATC.brakeFactor,
+    maxHandle: 5,
+
+    // 手柄响应速率
+    handleRate: 0.8,
 };
 
 // 风区随机幅度（physics.js 使用）

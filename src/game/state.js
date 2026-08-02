@@ -29,12 +29,9 @@ export const state = {
     windSpeed: 0,
     pendingAction: null,
     resultStatus: null,
-    atcActive: false,
-    atcIntegral: 0,
-    atcPrevError: 0,
-    atcTargetSpeed: 0,
-    atcTargetPos: 0,
-    windBases: {},
+    // 运行期上下文实例（flow.resetFull 创建，内部可变成分封装，不再平铺全局）
+    env: null, // Environment：路况/风/阻力快照
+    atc: null, // ATCController：仅 ATC 车辆创建
     arcadeZones: null,
 };
 
@@ -74,13 +71,10 @@ export function resetRunFields() {
     state.lastReleasePos = null;
     state.lastReleaseSpeed = null;
     state.windSpeed = 0;
-    state.atcActive = false;
-    state.atcIntegral = 0;
-    state.atcPrevError = 0;
-    state.atcTargetSpeed = 0;
-    state.windBases = {};
     state.pendingAction = null;
     state.resultStatus = null;
+    // 注意：state.env / state.atc 不在此重置 —— 由 resetFull 每次运行重建，
+    // beginRun 复用的是 resetFull 刚创建的实例。
 }
 
 // ---------- 街机模式随机路况生成 ----------
