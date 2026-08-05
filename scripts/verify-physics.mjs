@@ -13,8 +13,9 @@ import {
     MIN_SPEED,
     VEHICLES,
 } from '../src/game/data.js';
-import { computeAcceleration, evaluateTermination } from '../src/game/physics.js';
+import { computeAcceleration, integrate, evaluateTermination } from '../src/game/physics.js';
 import { smoothHandle, getManualRate } from '../src/game/control.js';
+import { recordAccel, recordEntry } from '../src/game/stats.js';
 import { Environment } from '../src/game/environment.js';
 import { ATCController } from '../src/game/atc.js';
 
@@ -127,7 +128,7 @@ function refStep(st, dt) {
     return { events, ended: false };
 }
 
-// 新版一帧：激活判定内聚于 atc.js，编排与重构后 physicsUpdate 一致
+// 新版一帧：激活判定内聚于 atc.js，编排与重构后 sim.js stepGame 一致（统计/积分走生产纯函数）
 function newStep(st, dt) {
     const vehicle = st.vehicle;
     const isATC = vehicle.isATC || false;
@@ -153,18 +154,12 @@ function newStep(st, dt) {
     const accel = computeAcceleration({ handle: st.handle, speed: st.speed, vehicle, env });
     const maxSpeed = vehicle.maxSpeed || 28.0;
     if (st.speed < 0) st.speed = 0;
-    st.currentAccel = accel;
-    if (accel < 0 && st.speed > 0.1) {
-        const decel = -accel;
-        if (decel > st.maxDecel) st.maxDecel = decel;
-    }
-    st.speed += accel * dt;
-    if (st.speed < 0) st.speed = 0;
-    if (st.speed > maxSpeed) st.speed = maxSpeed;
-    st.pos += st.speed * dt;
+    recordAccel(st, accel, st.speed);
+    const stepped = integrate({ pos: st.pos, speed: st.speed, accel, dt, maxSpeed });
+    st.pos = stepped.pos;
+    st.speed = stepped.speed;
     st.gameTime += dt;
-    if (st.pos >= PLATFORM_START && st.entryTime === null) st.entryTime = st.gameTime;
-    if (st.entryTime !== null) st.timer = st.gameTime - st.entryTime;
+    recordEntry(st, st.pos, st.gameTime);
     const term = evaluateTermination({ pos: st.pos, speed: st.speed, stats: st, dt });
     if (term.ended) return { events, ended: true, reason: term.reason, deviation: term.deviation };
     st.pos = term.pos;

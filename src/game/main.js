@@ -2,7 +2,7 @@
 // （输入/手柄/Konami 已移至 input.js，重置存档/结算动作已移至 flow.js）
 import { state } from './state.js';
 import { loadProgress, loadAchievements } from './progress.js';
-import { physicsUpdate } from './physics.js';
+import { stepGame } from './sim.js';
 import { drawScene } from './render.js';
 import {
     updateUI, showToast, showConfirmDialog, showMainMenu, closeView,
@@ -26,9 +26,8 @@ function gameLoop(timestamp) {
     const dt = (timestamp - lastTime) / 1000;
     lastTime = timestamp;
     if (state.running && !state.ended) {
-        const result = physicsUpdate(dt);
+        const result = stepGame(dt);
         if (result) {
-            // 物理层不再直接处理流程/UI：事件在此统一调度
             if (result.atcActivated) showToast('🤖 ATC自动驾驶已激活');
             if (result.ended) endGame(result.deviation, result.reason);
         }

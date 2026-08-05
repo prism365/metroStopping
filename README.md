@@ -24,6 +24,7 @@
 ## 开发说明
 
 - 入口文件：`index.html`
+- 本地调试服务器：`python scripts/serve.py`（零依赖，自动附加 `Cache-Control: no-cache`，避免旧模块缓存问题，行为与生产一致）
 - 样式文件：`src/styles/main.css`
 - 游戏逻辑与数据：`src/game/main.js`、`src/game/data.js`、`src/game/storage.js`
 - 本地数据键（游戏数据）：`trainProgress`、`trainAchievements`（保存在 `localStorage`）
@@ -41,6 +42,22 @@
 - 在“关于”页面使用 `🗑️重置存档` 清除游戏存档数据
 - 修改成就判定后在 `endGame()` 调用处打印 `state` 验证统计值
 - 测试后门：在主菜单按`⬆⬆⬆⬆⬇⬇⬇⬇`可以解锁所有关卡与车辆
+
+## 部署
+
+本仓库为纯静态站点（无构建工具），可直接部署到 Pages托管。
+
+以Cloudflare Pages为例：
+
+1. 将仓库推送到 GitHub / GitLab
+2. Cloudflare Dashboard → **Workers & Pages** → **Create → Pages → Connect to Git**，选择本仓库
+3. 构建配置：
+   - Framework preset：**None**
+   - Build command：**留空**（无构建步骤）
+   - Build output directory：**留空或 `/`**（`index.html` 在仓库根）
+4. 仓库根的 `_headers` 文件已为所有资源设置 `Cache-Control: no-cache`，发版后用户普通刷新即可获取最新版本，无需硬刷新
+
+部署后访问 `https://<项目名>.pages.dev`（可配置自定义域名）。
 
 ## 贡献
 

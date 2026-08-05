@@ -5,7 +5,7 @@
       "label": "serve-metro-stopping",
       "type": "shell",
       "command": "python",
-      "args": ["-m", "http.server", "8000", "--bind", "127.0.0.1"],
+      "args": ["scripts/serve.py", "8000"],
       "isBackground": true,
       "problemMatcher": {
         "owner": "custom",

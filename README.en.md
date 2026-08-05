@@ -40,6 +40,20 @@ A browser-based lightweight metro stopping simulation game. The core objective i
 - After modifying achievement logic, print the `state` at the `endGame()` call site to verify statistics
 - Testing backdoor: on the main menu, press `⬆⬆⬆⬆⬇⬇⬇⬇` to unlock all levels and vehicles
 
+## Deployment (Cloudflare Pages)
+
+This repository is a pure static site (no build tooling) and can be deployed directly to Cloudflare Pages:
+
+1. Push the repository to GitHub / GitLab
+2. Cloudflare Dashboard → **Workers & Pages** → **Create → Pages → Connect to Git**, and select this repository
+3. Build configuration:
+   - Framework preset: **None**
+   - Build command: **leave empty** (no build step)
+   - Build output directory: **leave empty or `/`** (`index.html` is at the repository root)
+4. The `_headers` file at the repository root sets `Cache-Control: no-cache` for all resources, so users get the latest version on a normal refresh after each release — no hard refresh needed
+
+After deployment, visit `https://<project-name>.pages.dev` (a custom domain can be configured).
+
 ## Contributing
 
 Contributions are welcome: Fork -> Create branch -> Submit PR. Please describe your changes and testing steps in the PR.
