@@ -38,7 +38,15 @@ export class ATCController {
     }
 
     // 控制器步进：输入仿真状态与环境快照，输出目标手柄命令（不含手柄响应平滑，由物理层统一处理）
+    // 激活判定内聚于此：未到激活点返回 null（物理层不接管）；激活帧返回 { targetHandle, atcActivated: true }，
+    // 之后返回 { targetHandle, atcActivated: false }。激活帧与物理层原逻辑等价：激活后再正常计算并接管。
     update({ pos, speed, dt, env }) {
+        let activated = false;
+        if (!this.active) {
+            if (!this.shouldActivate(pos)) return null;
+            this.active = true;
+            activated = true;
+        }
         const cfg = this.config;
         const distToTarget = Math.max(0, this.targetPos - pos);
         this.targetSpeed = computeTargetSpeed(distToTarget, cfg);
@@ -74,6 +82,6 @@ export class ATCController {
             handleOut = -cfg.maxHandle;
         }
 
-        return { targetHandle: handleOut };
+        return { targetHandle: handleOut, atcActivated: activated };
     }
 }

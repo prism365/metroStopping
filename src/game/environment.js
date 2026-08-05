@@ -31,7 +31,7 @@ export class Environment {
         this.vehicle = vehicle;
         this.trainLength = trainLength;
         this.windBases = {}; // 原 state.windBases（风区随机基底缓存，随实例重建）
-        this.windSpeed = 0;  // 本 tick 合成风速（由调用方发布到 state.windSpeed 供渲染读取）
+        this.windSpeed = 0;  // 本 tick 合成风速（由调用方发布到 state.stats.windSpeed 供渲染读取）
     }
 
     // 返回 { totalGradient, totalWaterResist, windSpeed, airDrag }

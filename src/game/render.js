@@ -60,10 +60,10 @@ export function drawScene() {
         } else if (zone.type === 'water') {
             label = '💧 积水';
         } else if (zone.type === 'wind') {
-            if (Math.abs(state.windSpeed) < 0.3) {
+            if (Math.abs(state.stats.windSpeed) < 0.3) {
                 label = '💨 无风';
             } else {
-                label = state.windSpeed > 0 ? '💨 逆风' : '💨 顺风';
+                label = state.stats.windSpeed > 0 ? '💨 逆风' : '💨 顺风';
             }
         }
         ctx.fillText(label, (Math.max(0, sx1) + Math.min(W, sx2)) / 2, yPos + zoneHeight / 2);
@@ -167,7 +167,7 @@ export function drawScene() {
                 const doorW = RENDER.doorW * pxPerM;
                 const doorH = RENDER.doorH * pxPerM;
                 const doorY = platY + platH - doorH - 6;
-                const isAligned = state.ended && Math.abs(state.deviation || 0) < 0.2;
+                const isAligned = state.ended && Math.abs(state.stats.deviation || 0) < 0.2;
                 ctx.shadowColor = isAligned ? 'rgba(125,255,179,0.3)' : 'rgba(100,200,255,0.1)';
                 ctx.shadowBlur = isAligned ? 20 : 10;
                 ctx.fillStyle = isAligned ? 'rgba(125,255,179,0.08)' : 'rgba(100,200,255,0.04)';
@@ -198,7 +198,7 @@ export function drawScene() {
     const trainY = trackY - RENDER.trainHeight * pxPerM - 4;
     const totalLen = TRAIN_LENGTH;
     const startX = state.pos * pxPerM + offsetX - totalLen * pxPerM;
-    const accel = state.currentAccel || 0;
+    const accel = state.stats.currentAccel || 0;
     let r, g, b;
     if (Math.abs(accel) < 0.05) {
         r = 0.4;
@@ -307,7 +307,7 @@ export function drawScene() {
 
     // 偏差
     if (state.running || state.ended) {
-        const dev = state.deviation;
+        const dev = state.stats.deviation;
         if (dev !== null && state.pos > PLATFORM_START - 5) {
             const devAbs = Math.abs(dev);
             let color = '#ffd866';
@@ -325,22 +325,22 @@ export function drawScene() {
     }
 
     // 进站计时
-    if (state.entryTime !== null && state.running) {
+    if (state.stats.entryTime !== null && state.running) {
         ctx.fillStyle = 'rgba(200,230,255,0.2)';
         ctx.font = '12px monospace';
         ctx.textAlign = 'right';
         ctx.textBaseline = 'bottom';
-        ctx.fillText(`进站 ${state.timer.toFixed(1)}s`, W - 10, H - 10);
+        ctx.fillText(`进站 ${state.stats.timer.toFixed(1)}s`, W - 10, H - 10);
     }
 
     // 风速
-    if (state.running && Math.abs(state.windSpeed) > 0.1) {
+    if (state.running && Math.abs(state.stats.windSpeed) > 0.1) {
         ctx.fillStyle = 'rgba(200,230,255,0.2)';
         ctx.font = '12px monospace';
         ctx.textAlign = 'right';
         ctx.textBaseline = 'bottom';
-        const dir = state.windSpeed > 0 ? '逆风' : '顺风';
-        ctx.fillText(`风速 ${Math.abs(state.windSpeed).toFixed(1)} m/s ${dir}`, W - 10, H - 26);
+        const dir = state.stats.windSpeed > 0 ? '逆风' : '顺风';
+        ctx.fillText(`风速 ${Math.abs(state.stats.windSpeed).toFixed(1)} m/s ${dir}`, W - 10, H - 26);
     }
 
     // 底部信息

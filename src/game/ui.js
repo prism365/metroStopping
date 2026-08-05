@@ -17,8 +17,8 @@ import {
 export function updateUI() {
     const kmh = (state.speed * 3.6);
     speedDisplay.textContent = kmh.toFixed(0);
-    if (state.deviation !== null) {
-        const d = Math.abs(state.deviation);
+    if (state.stats.deviation !== null) {
+        const d = Math.abs(state.stats.deviation);
         deviationDisplay.textContent = d.toFixed(2);
         let cls = 'deviation';
         if (d < 0.2) cls += ' perfect';

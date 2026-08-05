@@ -3,6 +3,7 @@ import { LEVELS, BASE_SPEED, SPEED_RANDOM_RANGE, TARGET_HEAD_POS } from './data.
 import { state, playerProgress, achievements, resetRunFields, getLevelParams, getVehicleParams } from './state.js';
 import { Environment } from './environment.js';
 import { ATCController } from './atc.js';
+import { RunStats } from './stats.js';
 import { completeLevel, saveProgress, isLevelUnlocked, checkAchievements } from './progress.js';
 import * as storage from './storage.js';
 import { drawScene } from './render.js';
@@ -23,7 +24,6 @@ export function resetFull() {
     const initSpeed = Math.min(vehicle.maxSpeed, Math.max(0.1, BASE_SPEED + randOffset));
     state.pos = -initOffset;
     state.speed = initSpeed;
-    state.prevSpeed = initSpeed;
     state.running = false;
     state.ended = false;
     state.gameTime = 0;
@@ -33,10 +33,12 @@ export function resetFull() {
     if (playerProgress.currentLevel === 8) {
         state.arcadeZones = null;
     }
-    // 运行期上下文实例：环境 + ATC 控制器（每次运行重建，杜绝状态残留）。
+    // 运行期上下文实例：统计 + 环境 + ATC 控制器（每次运行重建，杜绝状态残留）。
     // 必须在 arcadeZones 置空之后再创建：街机模式随后由 getLevelParams 重新生成随机路况，
     // 保证物理所用环境快照与渲染/路况提示一致。
     const envLevel = getLevelParams();
+    state.stats = new RunStats();
+    state.stats.prevSpeed = initSpeed;
     state.env = new Environment({ zones: envLevel.zones || [], vehicle });
     state.atc = vehicle.isATC ? new ATCController({ vehicle, targetPos: TARGET_HEAD_POS }) : null;
     resultOverlay.classList.remove('show');
@@ -90,7 +92,8 @@ function beginRun() {
     state.countdownActive = false;
     state.ended = false;
     state.gameTime = 0;
-    state.prevSpeed = state.speed;
+    state.stats.reset();
+    state.stats.prevSpeed = state.speed;
     resetRunFields();
     resultOverlay.classList.remove('show');
     achievements.unlockedThisRun = [];
@@ -103,14 +106,15 @@ export function endGame(deviation, reason) {
     if (state.ended) return;
     state.ended = true;
     state.running = false;
-    state.deviation = deviation;
+    const stats = state.stats;
+    stats.deviation = deviation;
     const d = Math.abs(deviation);
-    const maxDecel = state.maxDecel || 0;
-    const brakeCount = state.brakeCount || 0;
-    const handleChanges = state.handleChanges || 0;
-    const stopTime = state.timer || 0;
-    const didRelease = state.didRelease;
-    const releaseToStop = (state.lastReleaseTime != null) ? (state.gameTime - state.lastReleaseTime) : null;
+    const maxDecel = stats.maxDecel || 0;
+    const brakeCount = stats.brakeCount || 0;
+    const handleChanges = stats.handleChanges || 0;
+    const stopTime = stats.timer || 0;
+    const didRelease = stats.didRelease;
+    const releaseToStop = (stats.lastReleaseTime != null) ? (state.gameTime - stats.lastReleaseTime) : null;
 
     const vehicle = getVehicleParams();
     const isATC = vehicle.isATC || false;
@@ -133,8 +137,8 @@ export function endGame(deviation, reason) {
             handleChanges,
             didRelease,
             releaseToStop,
-            lastReleasePos: state.lastReleasePos,
-            lastReleaseSpeed: state.lastReleaseSpeed
+            lastReleasePos: stats.lastReleasePos,
+            lastReleaseSpeed: stats.lastReleaseSpeed
         });
     }
 

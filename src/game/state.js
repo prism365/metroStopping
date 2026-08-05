@@ -10,28 +10,15 @@ export const state = {
     running: false,
     ended: false,
     score: null,
-    deviation: null,
-    entryTime: null,
     gameTime: 0,
-    timer: 0,
     countdown: 3,
     countdownActive: false,
-    stopTimer: 0,
-    maxDecel: 0,
-    brakeCount: 0,
-    handleChanges: 0,
-    prevSpeed: 0,
-    currentAccel: 0,
-    didRelease: false,
-    lastReleaseTime: null,
-    lastReleasePos: null,
-    lastReleaseSpeed: null,
-    windSpeed: 0,
     pendingAction: null,
     resultStatus: null,
     // 运行期上下文实例（flow.resetFull 创建，内部可变成分封装，不再平铺全局）
-    env: null, // Environment：路况/风/阻力快照
-    atc: null, // ATCController：仅 ATC 车辆创建
+    stats: null,   // RunStats：运行统计与遥测（评分输入 + 渲染/UI 读取）
+    env: null,     // Environment：路况/风/阻力快照
+    atc: null,     // ATCController：仅 ATC 车辆创建
     arcadeZones: null,
 };
 
@@ -58,23 +45,10 @@ export function resetRunFields() {
     state.handle = 0;
     state.targetHandle = 0;
     state.score = null;
-    state.deviation = null;
-    state.entryTime = null;
-    state.timer = 0;
-    state.stopTimer = 0;
-    state.maxDecel = 0;
-    state.brakeCount = 0;
-    state.handleChanges = 0;
-    state.currentAccel = 0;
-    state.didRelease = false;
-    state.lastReleaseTime = null;
-    state.lastReleasePos = null;
-    state.lastReleaseSpeed = null;
-    state.windSpeed = 0;
     state.pendingAction = null;
     state.resultStatus = null;
-    // 注意：state.env / state.atc 不在此重置 —— 由 resetFull 每次运行重建，
-    // beginRun 复用的是 resetFull 刚创建的实例。
+    // 注意：state.stats / state.env / state.atc 不在此重置 —— 由 resetFull 每次运行重建，
+    // beginRun 复用实例并对 stats 调用 reset()。
 }
 
 // ---------- 街机模式随机路况生成 ----------

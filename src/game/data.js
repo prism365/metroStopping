@@ -198,8 +198,21 @@ export const BASE_BRAKE_ACCEL = 0.90;
 export const BASE_FRICTION_DECEL = 0.06;
 export const BASE_AIR_RESISTANCE = 0.004;
 
+// 物理仿真参数
+export const MAX_DT = 0.05;               // 单帧时间步上限（秒）
+export const BRAKE_SPEED_REF = 15.0;      // 制动减速度的速度因子参考速度（语义独立于 BASE_SPEED）
+export const SPEED_EPSILON = 0.001;       // 摩擦方向判定的速度阈值
+export const MAX_DECEL_RECORD_SPEED = 0.1; // 记录最大减速度所需的最低速度
+export const ACCEL_LIMIT = 2.0;           // 加速度钳制幅度（m/s²）
+export const OVERSHOOT_LIMIT = 10;        // 越过站台末端该值（米）判定为冲标
+export const STOP_CONFIRM_TIME = 0.5;     // 停稳确认时间（秒）
+export const POS_CLAMP_MAX_OFFSET = 50;   // 位置钳制上限 = PLATFORM_END + 该值
+export const POS_CLAMP_MIN = -200;        // 位置钳制下限
+export const MIN_SPEED = 0.01;            // 速度下限（低于该值视为静止）
+
 // 玩家手柄操作范围
 export const MAX_PLAYER_HANDLE = 5;
+export const MAX_ATC_HANDLE = 5;
 
 // 手柄响应速率
 export const HANDLE_RESPONSE_RATE_UP = 4.0;
@@ -225,11 +238,10 @@ for (let i = 0; i < TOTAL_DOORS; i++) {
     DOOR_OFFSETS.push(DOOR_SPACING / 2 + i * DOOR_SPACING);
 }
 
-// 游戏视口与初始速度、停止速度参数
+// 游戏视口与初始速度
 export const VIEWPORT_WIDTH_METERS = 95;
 export const BASE_SPEED = 15.0;
 export const SPEED_RANDOM_RANGE = 2.78;
-export const MIN_SPEED = 0.01;
 
 // 画布渲染布局常量（render.js 使用）
 export const RENDER = {
@@ -266,7 +278,7 @@ export const ATC = {
     // 手柄换算常数
     tractionAccel: BASE_TRACTION_ACCEL * VEHICLES.ATC.tractionFactor,
     brakeAccel: BASE_BRAKE_ACCEL * VEHICLES.ATC.brakeFactor,
-    maxHandle: 5,
+    maxHandle: MAX_ATC_HANDLE,
 
     // 手柄响应速率
     handleRate: 0.8,

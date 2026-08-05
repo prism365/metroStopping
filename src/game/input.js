@@ -16,8 +16,8 @@ function changeHandle(delta) {
     if (newTarget < -MAX_PLAYER_HANDLE) newTarget = -MAX_PLAYER_HANDLE;
     state.targetHandle = newTarget;
     if (Math.abs(newTarget - state.handle) > 0.1) {
-        state.handleChanges++;
-        if (newTarget < 0 && state.handle >= 0) state.brakeCount++;
+        state.stats.handleChanges++;
+        if (newTarget < 0 && state.handle >= 0) state.stats.brakeCount++;
     }
     updateUI();
 }

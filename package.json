@@ -1,0 +1,7 @@
+{
+  "name": "metro-stopping",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "地铁停靠小游戏（纯前端 ESM，无构建工具；type:module 供 Node 回归脚本 import 源码）"
+}
