@@ -9,11 +9,83 @@ import {
     DOOR_SPACING,
     TOTAL_DOORS,
     DOOR_OFFSETS,
+    DEVIATION_BANDS,
     VIEWPORT_WIDTH_METERS,
     RENDER,
 } from './data.js';
 import { state, getLevelParams, getVehicleParams } from './state.js';
 import { canvas, ctx } from './dom.js';
+
+// ---------- 路况区展示样式 ----------
+// ui.js 路况总览 与 render.js 实时标识 共用配色与标签定义（导出供 ui.js 复用，避免 data.js 承载展示参数）
+// 两组文案差异为既有行为，刻意保留：label* = render.js 实时标识；route* = ui.js 静态路况总览
+export const ZONE_STYLES = {
+    gradient: {
+        color: 'rgba(255,215,0,0.15)',
+        labelUp: '⬆ 上坡',
+        labelDown: '⬇ 下坡',
+        routeUp: '⬆上坡',
+        routeDown: '⬇下坡',
+    },
+    water: {
+        color: 'rgba(0,150,255,0.15)',
+        label: '💧 积水',
+        route: '💧积水',
+    },
+    wind: {
+        color: 'rgba(200,230,255,0.15)',
+        labelNone: '💨 无风',
+        labelAgainst: '💨 逆风',
+        labelWith: '💨 顺风',
+        route: '💨大风',
+    },
+};
+
+// 未知路况类型的兜底填充色
+export const ZONE_FALLBACK_COLOR = 'rgba(255,255,255,0.1)';
+
+// ---------- 渐变缓存 ----------
+// canvas 固定 1000×420 无 resize，站台/对标点/屏蔽门渐变图案恒定（颜色/尺寸不变）；
+// 随滚动平移的部分用 ctx.save/translate/restore 定位，理论逐像素一致。
+const PX_PER_M = canvas.width / VIEWPORT_WIDTH_METERS;
+
+let cachedPlatGrad = null;
+function getPlatformGradient() {
+    if (!cachedPlatGrad) {
+        const grad = ctx.createLinearGradient(0, RENDER.platY, 0, RENDER.platY + RENDER.platH);
+        grad.addColorStop(0, '#2a4058');
+        grad.addColorStop(0.6, '#1e3348');
+        grad.addColorStop(1, '#152a3a');
+        cachedPlatGrad = grad;
+    }
+    return cachedPlatGrad;
+}
+
+let cachedTargetGrad = null;
+function getTargetGradient() {
+    if (!cachedTargetGrad) {
+        // 局部坐标原点 (0, platY+16)，调用处以 translate(targetX, 0) 定位
+        const grd = ctx.createRadialGradient(0, RENDER.platY + 16, 4, 0, RENDER.platY + 16, 30);
+        grd.addColorStop(0, 'rgba(255,80,80,0.5)');
+        grd.addColorStop(1, 'rgba(255,80,80,0)');
+        cachedTargetGrad = grd;
+    }
+    return cachedTargetGrad;
+}
+
+let cachedDoorGrad = null;
+function getDoorGradient() {
+    if (!cachedDoorGrad) {
+        // 局部坐标 (0,0)→(doorW,0)，调用处以 translate(doorScreenX, doorY) 定位
+        const doorW = RENDER.doorW * PX_PER_M;
+        const grad = ctx.createLinearGradient(0, 0, doorW, 0);
+        grad.addColorStop(0, '#3a7a9a');
+        grad.addColorStop(0.5, '#4a8aaa');
+        grad.addColorStop(1, '#3a7a9a');
+        cachedDoorGrad = grad;
+    }
+    return cachedDoorGrad;
+}
 
 // ---------- 绘制函数 ----------
 export function drawScene() {
@@ -39,12 +111,8 @@ export function drawScene() {
         if (sx2 < -10 || sx1 > W + 10) continue;
 
         const yPos = startY - zoneYOffset;
-        const colors = {
-            gradient: 'rgba(255,215,0,0.15)',
-            water: 'rgba(0,150,255,0.15)',
-            wind: 'rgba(200,230,255,0.15)'
-        };
-        ctx.fillStyle = colors[zone.type] || 'rgba(255,255,255,0.1)';
+        const style = ZONE_STYLES[zone.type];
+        ctx.fillStyle = style ? style.color : ZONE_FALLBACK_COLOR;
         ctx.fillRect(Math.max(0, sx1), yPos, Math.min(W, sx2) - Math.max(0, sx1), zoneHeight);
         ctx.strokeStyle = 'rgba(255,255,255,0.1)';
         ctx.lineWidth = 1;
@@ -55,15 +123,17 @@ export function drawScene() {
         ctx.textAlign = 'center';
         ctx.textBaseline = 'middle';
         let label = '';
-        if (zone.type === 'gradient') {
-            label = zone.value > 0 ? '⬆ 上坡' : '⬇ 下坡';
-        } else if (zone.type === 'water') {
-            label = '💧 积水';
-        } else if (zone.type === 'wind') {
-            if (Math.abs(state.stats.windSpeed) < 0.3) {
-                label = '💨 无风';
-            } else {
-                label = state.stats.windSpeed > 0 ? '💨 逆风' : '💨 顺风';
+        if (style) {
+            if (zone.type === 'gradient') {
+                label = zone.value > 0 ? style.labelUp : style.labelDown;
+            } else if (zone.type === 'water') {
+                label = style.label;
+            } else if (zone.type === 'wind') {
+                if (Math.abs(state.stats.windSpeed) < 0.3) {
+                    label = style.labelNone;
+                } else {
+                    label = state.stats.windSpeed > 0 ? style.labelAgainst : style.labelWith;
+                }
             }
         }
         ctx.fillText(label, (Math.max(0, sx1) + Math.min(W, sx2)) / 2, yPos + zoneHeight / 2);
@@ -92,11 +162,7 @@ export function drawScene() {
     const platX1 = PLATFORM_START * pxPerM + offsetX;
     const platX2 = PLATFORM_END * pxPerM + offsetX;
     if (platX2 > -10 && platX1 < W + 10) {
-        const grad = ctx.createLinearGradient(0, platY, 0, platY + platH);
-        grad.addColorStop(0, '#2a4058');
-        grad.addColorStop(0.6, '#1e3348');
-        grad.addColorStop(1, '#152a3a');
-        ctx.fillStyle = grad;
+        ctx.fillStyle = getPlatformGradient();
         ctx.shadowColor = 'rgba(0,0,0,0.3)';
         ctx.shadowBlur = 15;
         ctx.fillRect(Math.max(0, platX1), platY, Math.min(W, platX2) - Math.max(0, platX1), platH);
@@ -136,11 +202,11 @@ export function drawScene() {
         // 对标点
         const targetX = TARGET_HEAD_POS * pxPerM + offsetX;
         if (targetX > 0 && targetX < W) {
-            const grd = ctx.createRadialGradient(targetX, platY + 16, 4, targetX, platY + 16, 30);
-            grd.addColorStop(0, 'rgba(255,80,80,0.5)');
-            grd.addColorStop(1, 'rgba(255,80,80,0)');
-            ctx.fillStyle = grd;
-            ctx.fillRect(targetX - 30, platY - 14, 60, 60);
+            ctx.save();
+            ctx.translate(targetX, 0);
+            ctx.fillStyle = getTargetGradient();
+            ctx.fillRect(-30, platY - 14, 60, 60);
+            ctx.restore();
             ctx.fillStyle = 'rgba(255, 60, 60, 0.9)';
             ctx.shadowColor = 'rgba(255,80,80,0.5)';
             ctx.shadowBlur = 20;
@@ -167,20 +233,20 @@ export function drawScene() {
                 const doorW = RENDER.doorW * pxPerM;
                 const doorH = RENDER.doorH * pxPerM;
                 const doorY = platY + platH - doorH - 6;
-                const isAligned = state.ended && Math.abs(state.stats.deviation || 0) < 0.2;
+                const isAligned = state.ended && Math.abs(state.stats.deviation || 0) < DEVIATION_BANDS.perfect;
                 ctx.shadowColor = isAligned ? 'rgba(125,255,179,0.3)' : 'rgba(100,200,255,0.1)';
                 ctx.shadowBlur = isAligned ? 20 : 10;
                 ctx.fillStyle = isAligned ? 'rgba(125,255,179,0.08)' : 'rgba(100,200,255,0.04)';
                 ctx.fillRect(doorScreenX - 6, doorY - 6, doorW + 12, doorH + 12);
                 ctx.shadowBlur = 0;
-                const gradDoor = ctx.createLinearGradient(doorScreenX, doorY, doorScreenX + doorW, doorY);
-                gradDoor.addColorStop(0, '#3a7a9a');
-                gradDoor.addColorStop(0.5, '#4a8aaa');
-                gradDoor.addColorStop(1, '#3a7a9a');
-                ctx.fillStyle = gradDoor;
+                // 门体（渐变已缓存，translate 定位；与旧逻辑逐像素一致）
+                ctx.save();
+                ctx.translate(doorScreenX, doorY);
+                ctx.fillStyle = getDoorGradient();
                 ctx.shadowColor = 'rgba(0,0,0,0.3)';
                 ctx.shadowBlur = 8;
-                ctx.fillRect(doorScreenX, doorY, doorW, doorH);
+                ctx.fillRect(0, 0, doorW, doorH);
+                ctx.restore();
                 ctx.shadowBlur = 0;
                 ctx.strokeStyle = 'rgba(100,200,255,0.2)';
                 ctx.lineWidth = 1.5;
@@ -311,9 +377,9 @@ export function drawScene() {
         if (dev !== null && state.pos > PLATFORM_START - 5) {
             const devAbs = Math.abs(dev);
             let color = '#ffd866';
-            if (devAbs < 0.2) color = '#7dffb3';
-            else if (devAbs < 0.6) color = '#aaffaa';
-            else if (devAbs < 1.2) color = '#ffa94d';
+            if (devAbs < DEVIATION_BANDS.perfect) color = '#7dffb3';
+            else if (devAbs < DEVIATION_BANDS.good) color = '#aaffaa';
+            else if (devAbs < DEVIATION_BANDS.fair) color = '#ffa94d';
             else color = '#ff6b6b';
             ctx.fillStyle = color;
             ctx.font = 'bold 20px monospace';

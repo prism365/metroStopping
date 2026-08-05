@@ -1,7 +1,7 @@
 // 运行统计与遥测：单次运行的评分输入统计 + 供渲染/UI 读取的遥测快照
 // 每次运行一个 RunStats 实例（flow.resetFull 创建，beginRun 时 reset），与 env/atc 实例化模式一致。
-// 写者：sim.js（maxDecel/currentAccel/entryTime/timer/didRelease/lastRelease*/windSpeed）、
-//       input.js（brakeCount/handleChanges）、flow.js（prevSpeed）、physics.js（stopTimer/deviation，在 evaluateTermination 内写入）
+// 写者：sim.js（maxDecel/currentAccel/entryTime/timer/didRelease/lastRelease*/windSpeed/stopTimer/deviation）、
+//       input.js（brakeCount/handleChanges）、flow.js（prevSpeed）
 // 读者：flow.js（评分输入）、render.js / ui.js（遥测）
 import { MAX_DECEL_RECORD_SPEED, PLATFORM_START } from './data.js';
 

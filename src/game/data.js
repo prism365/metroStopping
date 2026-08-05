@@ -322,6 +322,13 @@ export const SCORING = {
     STYLE_BONUS_JERKY: -10,
 };
 
+// 偏差展示分级（仅 ui.js 徽章 / render.js 颜色 展示用；独立于 SCORING 评分阈值，数值刻意不同）
+export const DEVIATION_BANDS = {
+    perfect: 0.2,
+    good: 0.6,
+    fair: 1.2,
+};
+
 // 成就判定阈值
 export const ACHIEVEMENT_RULES = {
     PRECISION_DEV: 0.15,

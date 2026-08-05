@@ -160,7 +160,9 @@ function newStep(st, dt) {
     st.speed = stepped.speed;
     st.gameTime += dt;
     recordEntry(st, st.pos, st.gameTime);
-    const term = evaluateTermination({ pos: st.pos, speed: st.speed, stats: st, dt });
+    const term = evaluateTermination({ pos: st.pos, speed: st.speed, dt, stopTimer: st.stopTimer });
+    st.stopTimer = term.stopTimer;
+    if (term.reason !== 'overshoot') st.deviation = term.deviation; // 镜像 sim.js：冲标帧不发布 deviation
     if (term.ended) return { events, ended: true, reason: term.reason, deviation: term.deviation };
     st.pos = term.pos;
     return { events, ended: false };
@@ -195,10 +197,14 @@ function testEvaluateTerminationSweep() {
         const pos = -250 + rand() * 400;
         const speed = rand() * 30;
         const dt = 0.016;
-        const stOld = { deviation: null, stopTimer: rand() * 1.5 };
-        const stNew = { deviation: null, stopTimer: stOld.stopTimer };
+        // 旧版：接收 stats 可变对象并就地累积（refXxx 冻结）
+        // 注意：初始 stopTimer 必须先保存，旧版调用会就地改写 stOld.stopTimer，
+        // 新版需以同一初始值入参（纯函数不修改入参）。
+        const initialStopTimer = rand() * 1.5;
+        const stOld = { deviation: null, stopTimer: initialStopTimer };
         const old = refEvaluateTermination({ pos, speed, stats: stOld, dt });
-        const neo = evaluateTermination({ pos, speed, stats: stNew, dt });
+        // 新版：纯函数，stopTimer 入参、返回值携带（调用方再写入 stats）
+        const neo = evaluateTermination({ pos, speed, dt, stopTimer: initialStopTimer });
         assert(old.ended === neo.ended, `i=${i} ended: ${old.ended} vs ${neo.ended}`);
         if (old.ended) {
             assert(old.reason === neo.reason, `i=${i} reason: ${old.reason} vs ${neo.reason}`);
@@ -206,8 +212,11 @@ function testEvaluateTerminationSweep() {
         } else {
             assert(Math.abs(old.pos - neo.pos) < 1e-9, `i=${i} pos: ${old.pos} vs ${neo.pos}`);
         }
-        assert(Math.abs(stOld.deviation - stNew.deviation) < 1e-9, `i=${i} stats.deviation 差异`);
-        assert(Math.abs(stOld.stopTimer - stNew.stopTimer) < 1e-9, `i=${i} stats.stopTimer 差异`);
+        assert(Math.abs(neo.stopTimer - stOld.stopTimer) < 1e-9, `i=${i} stats.stopTimer 差异`);
+        // 冲标帧旧语义不发布 deviation（由 endGame 统一写入），仅非冲标帧对比
+        if (!old.ended || old.reason !== 'overshoot') {
+            assert(Math.abs(neo.deviation - stOld.deviation) < 1e-9, `i=${i} stats.deviation 差异`);
+        }
     }
 }
 

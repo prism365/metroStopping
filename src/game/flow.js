@@ -48,6 +48,17 @@ export function resetFull() {
     updateRouteInfo();
 }
 
+// ---------- 流程快捷入口（去重「开局 / 返回」序列，main.js 与内部逻辑复用）----------
+export function startGame() {
+    resetFull();
+    startCountdownProcess();
+}
+
+export function returnToMenu() {
+    resetFull();
+    showMainMenu();
+}
+
 // ---------- 倒计时 ----------
 let countdownInterval = null;
 
@@ -127,9 +138,10 @@ export function endGame(deviation, reason) {
     state.score = score;
     state.resultStatus = { text: isPass ? '✅ 停靠成功' : '❌ 停靠失败', cls: isPass ? 'stopped' : 'fail' };
 
-    // 成就检查（仅手动模式通过时）
+    // 成就检查（仅手动模式通过时）；新解锁成就的 toast 反馈统一在此弹出
+    // （progress.js 已纯逻辑化，checkAchievements 返回新解锁成就数组）
     if (!isATC && isPass) {
-        checkAchievements({
+        const newAchs = checkAchievements({
             deviation: d,
             maxDecel,
             stopTime,
@@ -140,6 +152,7 @@ export function endGame(deviation, reason) {
             lastReleasePos: stats.lastReleasePos,
             lastReleaseSpeed: stats.lastReleaseSpeed
         });
+        newAchs.forEach(ach => showToast(`🏆 解锁成就：${ach.icon} ${ach.name}`));
     }
 
     // 关卡推进
@@ -170,8 +183,7 @@ export function handleResultAction() {
             saveProgress();
         }
     }
-    resetFull();
-    startCountdownProcess();
+    startGame();
 }
 
 // ---------- 重置全部存档（重置存档按钮专用）----------
@@ -186,7 +198,6 @@ export function resetAllProgress() {
         achievements.map[key].unlocked = false;
     }
     achievements.gameCount = 0;
-    resetFull();
-    showMainMenu();
+    returnToMenu();
     showToast('🗑️ 存档已重置');
 }

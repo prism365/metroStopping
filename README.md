@@ -30,12 +30,6 @@
 - 本地数据键（游戏数据）：`trainProgress`、`trainAchievements`（保存在 `localStorage`）
 - 成就定义位于 `src/game/data.js` 的 `ACHIEVEMENTS` 对象；判定在 `checkAchievements(data)` 中实现
 
-### 常见修改点
-
-- 把成就阈值抽成常量：将判定中硬编码的阈值移到文件顶部，便于调整
-- 添加新成就：在 `ACHIEVEMENTS` 添加条目，并在 `checkAchievements` 中写入判定逻辑
-- 保存方式切换：目前使用 `localStorage`，可尝试服务端持久化
-
 ## 测试建议
 
 - 在开发者工具（F12）查看控制台日志以捕获异常
@@ -58,6 +52,25 @@
 4. 仓库根的 `_headers` 文件已为所有资源设置 `Cache-Control: no-cache`，发版后用户普通刷新即可获取最新版本，无需硬刷新
 
 部署后访问 `https://<项目名>.pages.dev`（可配置自定义域名）。
+
+### 未来开发方向
+
+**性能与渲染**
+- 高分屏适配：canvas 按 `devicePixelRatio` 缩放并监听 `resize`，提升高分屏清晰度
+- 后台自动暂停：监听 `visibilitychange`，切后台时暂停游戏
+
+**代码结构**
+- 运行期字段封装为 `RunState`（`pos` / `speed` / `handle` 等），进一步收敛可变全局 `state`
+
+**测试与工程化**
+- CI：GitHub Actions 在 push / PR 时自动运行 `verify-physics.mjs` 与 `npm test`（低优先级）
+- `verify-physics.mjs` 快照化：用可复现 PRNG 固化基线 JSON，消除 `refXxx` 双份维护与漂移风险（低优先级）
+
+**玩法与体验**
+- 新增设置菜单
+- 音效：Web Audio 合成发车 / 制动 / 到站提示音 / VVVF电机声效
+- 暂停功能（含键盘快捷键）
+- 关卡星级展示细化：展示具体得分 / 星级数
 
 ## 贡献
 

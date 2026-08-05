@@ -1,14 +1,16 @@
 // 入口模块：游戏循环、菜单按钮绑定、初始化
 // （输入/手柄/Konami 已移至 input.js，重置存档/结算动作已移至 flow.js）
-import { state } from './state.js';
-import { loadProgress, loadAchievements } from './progress.js';
+import { state, playerProgress } from './state.js';
+import { LEVELS, VEHICLES } from './data.js';
+import { loadProgress, loadAchievements, saveProgress } from './progress.js';
 import { stepGame } from './sim.js';
 import { drawScene } from './render.js';
 import {
     updateUI, showToast, showConfirmDialog, showMainMenu, closeView,
     showLevelView, showVehicleView, showAboutView, showAchievementView,
+    renderLevelGrid, renderVehicleGrid,
 } from './ui.js';
-import { resetFull, startCountdownProcess, resetAllProgress, handleResultAction, endGame } from './flow.js';
+import { resetFull, startGame, returnToMenu, resetAllProgress, handleResultAction, endGame } from './flow.js';
 import './input.js'; // 输入绑定（键盘/触屏/Konami）
 import {
     mainMenu, levelView, vehicleView, aboutView, achievementView,
@@ -32,7 +34,8 @@ function gameLoop(timestamp) {
             if (result.ended) endGame(result.deviation, result.reason);
         }
     }
-    drawScene();
+    
+    if (state.running) drawScene();
     updateUI();
     requestAnimationFrame(gameLoop);
 }
@@ -40,8 +43,7 @@ function gameLoop(timestamp) {
 // ---------- 从主菜单开始游戏 ----------
 function startGameFromMenu() {
     mainMenu.classList.add('hidden');
-    resetFull();
-    startCountdownProcess();
+    startGame();
 }
 
 // ---------- 菜单按钮绑定 ----------
@@ -71,14 +73,29 @@ resetStorageBtn.addEventListener('click', async () => {
     resetAllProgress();
 });
 
-menuReturnBtn.addEventListener('click', () => {
+menuReturnBtn.addEventListener('click', returnToMenu);
+
+resetBtn.addEventListener('click', returnToMenu);
+
+// ---------- 选关 / 选车（ui.js 上抛事件，本模块统一编排：存档 → 重置 → 提示 → 刷新 → 关视图回菜单）----------
+document.addEventListener('level-selected', (e) => {
+    const id = e.detail.id;
+    playerProgress.currentLevel = id;
+    saveProgress();
     resetFull();
-    showMainMenu();
+    showToast(`🗺️ 切换到 ${LEVELS.find(l => l.id === id).name}`);
+    renderLevelGrid();
+    closeView(levelView);
 });
 
-resetBtn.addEventListener('click', () => {
+document.addEventListener('vehicle-selected', (e) => {
+    const id = e.detail.id;
+    playerProgress.currentVehicle = id;
+    saveProgress();
     resetFull();
-    showMainMenu();
+    showToast(`🚆 切换至 ${VEHICLES[id].name}`);
+    renderVehicleGrid();
+    closeView(vehicleView);
 });
 
 resultBtn.addEventListener('click', handleResultAction);

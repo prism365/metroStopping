@@ -62,29 +62,28 @@ export function integrate({ pos, speed, accel, dt, maxSpeed }) {
 }
 
 // ---------- 纯函数：终局判定与位置钳制 ----------
-// 返回 { ended: true, reason, deviation } 或 { ended: false, pos }（钳制后的位置）。
-// stopTimer 累积与 deviation 发布写入 stats，与旧逻辑等价。
-export function evaluateTermination({ pos, speed, stats, dt }) {
+// 无副作用：stopTimer 入参、返回新值；deviation 随返回值携带，由调用方（sim.js）写入 stats。
+// 返回 { ended: true, reason, deviation, stopTimer } 或 { ended: false, pos, deviation, stopTimer }。
+export function evaluateTermination({ pos, speed, dt, stopTimer }) {
     if (pos > PLATFORM_END + OVERSHOOT_LIMIT) {
-        return { ended: true, reason: 'overshoot', deviation: pos - TARGET_HEAD_POS };
+        return { ended: true, reason: 'overshoot', deviation: pos - TARGET_HEAD_POS, stopTimer };
     }
 
     const deviation = pos - TARGET_HEAD_POS;
-    stats.deviation = deviation;
 
     if (Math.abs(speed) < MIN_SPEED) {
-        stats.stopTimer += dt;
-        if (stats.stopTimer >= STOP_CONFIRM_TIME) {
-            return { ended: true, reason: 'normal', deviation };
+        stopTimer += dt;
+        if (stopTimer >= STOP_CONFIRM_TIME) {
+            return { ended: true, reason: 'normal', deviation, stopTimer };
         }
     } else {
-        stats.stopTimer = 0;
+        stopTimer = 0;
     }
 
     let clampedPos = pos;
     if (clampedPos > PLATFORM_END + POS_CLAMP_MAX_OFFSET) clampedPos = PLATFORM_END + POS_CLAMP_MAX_OFFSET;
     if (clampedPos < POS_CLAMP_MIN) clampedPos = POS_CLAMP_MIN;
-    return { ended: false, pos: clampedPos };
+    return { ended: false, pos: clampedPos, deviation, stopTimer };
 }
 
 

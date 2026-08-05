@@ -1,7 +1,7 @@
 // 帧模拟编排：stepGame —— 环境 → 控制 → 物理 → 统计 → 事件
 // 纯物理公式在 physics.js（computeAcceleration / integrate / evaluateTermination）；
 // 控制分支复用 control.js（smoothHandle / getManualRate）、atc.js（ATCController）；
-// 统计写入收拢于 stats.js（recordAccel / recordEntry）。
+// 统计写入收拢于 stats.js（recordAccel / recordEntry）；stopTimer / deviation 由 stepGame 落地（physics 纯函数返回值）。
 // 不依赖 flow.js / ui.js / render.js：终局与 UI 事件以返回值上抛给 main.js 统一调度。
 import { state, getVehicleParams } from './state.js';
 import { computeAcceleration, integrate, evaluateTermination } from './physics.js';
@@ -70,9 +70,12 @@ export function stepGame(dt) {
     state.speed = speed;
     state.gameTime += dt;
 
-    // 进站计时 + 终局判定
+    // 进站计时 + 终局判定（physics 纯函数；stopTimer/deviation 落地到 stats 由编排层完成）
     recordEntry(stats, state.pos, state.gameTime);
-    const term = evaluateTermination({ pos: state.pos, speed: state.speed, stats, dt });
+    const term = evaluateTermination({ pos: state.pos, speed: state.speed, dt, stopTimer: stats.stopTimer });
+    stats.stopTimer = term.stopTimer;
+    // 冲标帧不发布 deviation（旧语义：终局偏差由 endGame 统一写入）
+    if (term.reason !== 'overshoot') stats.deviation = term.deviation;
     if (term.ended) {
         return { ...events, ended: true, reason: term.reason, deviation: term.deviation };
     }

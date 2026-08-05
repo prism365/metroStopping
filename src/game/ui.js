@@ -1,11 +1,9 @@
 // UI 更新、导航、弹窗与列表渲染
-import { LEVELS, VEHICLES } from './data.js';
-import { state, playerProgress, achievements, getLevelParams, getVehicleParams } from './state.js';
-import { isLevelUnlocked, isVehicleUnlocked, saveProgress } from './progress.js';
-// 注：与 flow.js / progress.js 存在运行期双向引用（本模块调用 resetFull，
-// flow.js 调用本模块的 updateUI/showToast 等，progress.js 调用 showToast/renderLevelGrid），
-// 均为事件/流程期调用，ESM live binding 安全。
-import { resetFull } from './flow.js';
+// 选关/选车仅上抛意图（CustomEvent），业务编排由 main.js 统一处理（本模块不再依赖 flow.js）
+import { LEVELS, VEHICLES, DEVIATION_BANDS } from './data.js';
+import { state, playerProgress, achievements, getLevelParams } from './state.js';
+import { isLevelUnlocked, isVehicleUnlocked } from './progress.js';
+import { ZONE_STYLES } from './render.js';
 import {
     speedDisplay, deviationDisplay, statusBadge, levelDisplay, handleValue, routeInfo,
     mainMenu, levelView, vehicleView, aboutView, achievementView, countdownOverlay, resultOverlay,
@@ -14,46 +12,99 @@ import {
 } from './dom.js';
 
 // ---------- UI 更新 ----------
+// 脏值缓存：仅在值变化时写 DOM（游戏循环每帧调用，减少无谓的 DOM 写入）
+let lastSpeedText = null;
+let lastDevText = null;
+let lastDevCls = null;
+let lastHandleText = null;
+let lastHandleCls = null;
+let lastBadgeText = null;
+let lastBadgeCls = null;
+let lastLevelText = null;
+
 export function updateUI() {
     const kmh = (state.speed * 3.6);
-    speedDisplay.textContent = kmh.toFixed(0);
+    const speedText = kmh.toFixed(0);
+    if (speedText !== lastSpeedText) {
+        speedDisplay.textContent = speedText;
+        lastSpeedText = speedText;
+    }
     if (state.stats.deviation !== null) {
         const d = Math.abs(state.stats.deviation);
-        deviationDisplay.textContent = d.toFixed(2);
+        const devText = d.toFixed(2);
         let cls = 'deviation';
-        if (d < 0.2) cls += ' perfect';
-        else if (d < 0.6) cls += ' good';
-        else if (d < 1.2) cls += ' fair';
+        if (d < DEVIATION_BANDS.perfect) cls += ' perfect';
+        else if (d < DEVIATION_BANDS.good) cls += ' good';
+        else if (d < DEVIATION_BANDS.fair) cls += ' fair';
         else cls += ' poor';
-        deviationDisplay.className = 'val ' + cls;
+        const devCls = 'val ' + cls;
+        if (devText !== lastDevText) {
+            deviationDisplay.textContent = devText;
+            lastDevText = devText;
+        }
+        if (devCls !== lastDevCls) {
+            deviationDisplay.className = devCls;
+            lastDevCls = devCls;
+        }
     } else {
-        deviationDisplay.textContent = '--';
-        deviationDisplay.className = 'val deviation';
+        if (lastDevText !== '--') {
+            deviationDisplay.textContent = '--';
+            lastDevText = '--';
+        }
+        if (lastDevCls !== 'val deviation') {
+            deviationDisplay.className = 'val deviation';
+            lastDevCls = 'val deviation';
+        }
     }
     const h = state.handle;
-    handleValue.textContent = h.toFixed(0);
-    if (h > 0.1) handleValue.className = 'handle-value traction';
-    else if (h < -0.1) handleValue.className = 'handle-value brake';
-    else handleValue.className = 'handle-value neutral';
+    const handleText = h.toFixed(0);
+    let handleCls;
+    if (h > 0.1) handleCls = 'handle-value traction';
+    else if (h < -0.1) handleCls = 'handle-value brake';
+    else handleCls = 'handle-value neutral';
+    if (handleText !== lastHandleText) {
+        handleValue.textContent = handleText;
+        lastHandleText = handleText;
+    }
+    if (handleCls !== lastHandleCls) {
+        handleValue.className = handleCls;
+        lastHandleCls = handleCls;
+    }
 
+    let badgeText;
+    let badgeCls;
     if (state.countdownActive && !state.running) {
-        statusBadge.textContent = '⏳ 准备 ' + (state.countdown > 0 ? state.countdown : 'GO');
-        statusBadge.className = 'status-badge ready';
+        badgeText = '⏳ 准备 ' + (state.countdown > 0 ? state.countdown : 'GO');
+        badgeCls = 'status-badge ready';
     } else if (state.running) {
-        statusBadge.textContent = '🚆 行驶中';
-        statusBadge.className = 'status-badge running';
+        badgeText = '🚆 行驶中';
+        badgeCls = 'status-badge running';
     } else if (state.ended) {
         // 结算结果由 flow.endGame 写入 state.resultStatus（数据驱动，避免重复 DOM 赋值）
         if (state.resultStatus) {
-            statusBadge.textContent = state.resultStatus.text;
-            statusBadge.className = 'status-badge ' + state.resultStatus.cls;
+            badgeText = state.resultStatus.text;
+            badgeCls = 'status-badge ' + state.resultStatus.cls;
         }
     } else {
-        statusBadge.textContent = '⏸ 待发车';
-        statusBadge.className = 'status-badge';
+        badgeText = '⏸ 待发车';
+        badgeCls = 'status-badge';
     }
+    // ended 且无 resultStatus 时保持旧徽章（与原逻辑一致：不写 DOM）
+    if (badgeText !== undefined && badgeText !== lastBadgeText) {
+        statusBadge.textContent = badgeText;
+        lastBadgeText = badgeText;
+    }
+    if (badgeCls !== undefined && badgeCls !== lastBadgeCls) {
+        statusBadge.className = badgeCls;
+        lastBadgeCls = badgeCls;
+    }
+
     const level = getLevelParams();
-    levelDisplay.textContent = `第${playerProgress.currentLevel + 1}关 · ${level.name}`;
+    const levelText = `第${playerProgress.currentLevel + 1}关 · ${level.name}`;
+    if (levelText !== lastLevelText) {
+        levelDisplay.textContent = levelText;
+        lastLevelText = levelText;
+    }
 }
 
 // ---------- 路况信息 ----------
@@ -65,10 +116,10 @@ export function updateRouteInfo() {
         info = '🏙️ 平地';
     } else {
         const types = zones.map(z => {
-            if (z.type === 'gradient') return z.value > 0 ? '⬆上坡' : '⬇下坡';
-            if (z.type === 'water') return '💧积水';
-            if (z.type === 'wind') return '💨大风';
-            return '';
+            const style = ZONE_STYLES[z.type];
+            if (!style) return '';
+            if (z.type === 'gradient') return z.value > 0 ? style.routeUp : style.routeDown;
+            return style.route;
         });
         info = types.join(' · ');
     }
@@ -175,13 +226,8 @@ export function renderLevelGrid() {
         card.addEventListener('click', () => {
             const id = parseInt(card.dataset.level);
             if (isLevelUnlocked(id)) {
-                playerProgress.currentLevel = id;
-                saveProgress();
-                resetFull();
-                showToast(`🗺️ 切换到 ${LEVELS.find(l => l.id === id).name}`);
-                renderLevelGrid();
-                levelView.classList.add('hidden');
-                mainMenu.classList.remove('hidden');
+                // 仅上抛选关意图，具体编排（存档/重置/提示/关视图）由 main.js 监听执行
+                document.dispatchEvent(new CustomEvent('level-selected', { detail: { id } }));
             }
         });
     });
@@ -211,13 +257,8 @@ export function renderVehicleGrid() {
         card.addEventListener('click', () => {
             const id = card.dataset.vehicle;
             if (isVehicleUnlocked(id)) {
-                playerProgress.currentVehicle = id;
-                saveProgress();
-                resetFull();
-                showToast(`🚆 切换至 ${VEHICLES[id].name}`);
-                renderVehicleGrid();
-                vehicleView.classList.add('hidden');
-                mainMenu.classList.remove('hidden');
+                // 仅上抛选车意图，具体编排（存档/重置/提示/关视图）由 main.js 监听执行
+                document.dispatchEvent(new CustomEvent('vehicle-selected', { detail: { id } }));
             }
         });
     });

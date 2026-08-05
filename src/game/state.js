@@ -89,15 +89,22 @@ function generateArcadeZones() {
 }
 
 // 当前关卡参数（街机模式会缓存随机路况）
+// 记忆化：按 currentLevel 缓存 LEVELS.find 解析结果（改动仅限本文件，签名与对外行为不变）
+let cachedLevelId = null;
+let cachedLevel = null;
+
 export function getLevelParams() {
-    const level = LEVELS.find(l => l.id === playerProgress.currentLevel) || LEVELS[0];
-    if (level.id === 8) {
+    if (cachedLevelId !== playerProgress.currentLevel) {
+        cachedLevelId = playerProgress.currentLevel;
+        cachedLevel = LEVELS.find(l => l.id === playerProgress.currentLevel) || LEVELS[0];
+    }
+    if (cachedLevel.id === 8) {
         if (!state.arcadeZones) {
             state.arcadeZones = generateArcadeZones();
         }
-        return { ...level, zones: state.arcadeZones };
+        return { ...cachedLevel, zones: state.arcadeZones };
     }
-    return level;
+    return cachedLevel;
 }
 
 // 当前车辆参数
