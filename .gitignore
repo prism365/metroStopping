@@ -1,0 +1,14 @@
+# 依赖
+node_modules/
+
+# Playwright 产物
+test-results/
+playwright-report/
+blob-report/
+
+# 调试配置产生的临时数据
+.vscode/edge-profile/
+
+# 系统文件
+Thumbs.db
+.DS_Store

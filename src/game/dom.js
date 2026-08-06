@@ -1,0 +1,55 @@
+// DOM 元素引用集中管理
+export const canvas = document.getElementById('gameCanvas');
+export const ctx = canvas.getContext('2d');
+export const speedDisplay = document.getElementById('speedDisplay');
+export const deviationDisplay = document.getElementById('deviationDisplay');
+export const statusBadge = document.getElementById('statusBadge');
+export const levelDisplay = document.getElementById('levelDisplay');
+export const resultOverlay = document.getElementById('resultOverlay');
+export const resultIcon = document.getElementById('resultIcon');
+export const resultTitle = document.getElementById('resultTitle');
+export const resultDetail = document.getElementById('resultDetail');
+export const resultScore = document.getElementById('resultScore');
+export const resultAchievements = document.getElementById('resultAchievements');
+export const resultBtn = document.getElementById('resultBtn');
+export const resetBtn = document.getElementById('resetBtn');
+export const upBtn = document.getElementById('upBtn');
+export const downBtn = document.getElementById('downBtn');
+export const handleValue = document.getElementById('handleValue');
+export const menuReturnBtn = document.getElementById('menuReturnBtn');
+export const routeInfo = document.getElementById('routeInfo');
+
+export const mainMenu = document.getElementById('mainMenu');
+export const levelView = document.getElementById('levelView');
+export const vehicleView = document.getElementById('vehicleView');
+export const aboutView = document.getElementById('aboutView');
+export const achievementView = document.getElementById('achievementView');
+export const countdownOverlay = document.getElementById('countdownOverlay');
+export const countdownIcon = document.getElementById('countdownIcon');
+export const countdownText = document.getElementById('countdownText');
+export const countdownSub = document.getElementById('countdownSub');
+export const levelGridContainer = document.getElementById('levelGridContainer');
+export const vehicleGridContainer = document.getElementById('vehicleGridContainer');
+export const achievementListContainer = document.getElementById('achievementListContainer');
+
+export const startGameBtn = document.getElementById('startGameBtn');
+export const levelMenuBtn = document.getElementById('levelMenuBtn');
+export const vehicleMenuBtn = document.getElementById('vehicleMenuBtn');
+export const achievementMenuBtn = document.getElementById('achievementMenuBtn');
+export const aboutMenuBtn = document.getElementById('aboutMenuBtn');
+export const closeLevelBtn = document.getElementById('closeLevelBtn');
+export const closeLevelViewBtn = document.getElementById('closeLevelViewBtn');
+export const closeVehicleBtn = document.getElementById('closeVehicleBtn');
+export const closeVehicleViewBtn = document.getElementById('closeVehicleViewBtn');
+export const closeAboutBtn = document.getElementById('closeAboutBtn');
+export const closeAboutViewBtn = document.getElementById('closeAboutViewBtn');
+export const closeAchievementBtn = document.getElementById('closeAchievementBtn');
+export const closeAchievementViewBtn = document.getElementById('closeAchievementViewBtn');
+export const resetStorageBtn = document.getElementById('resetStorageBtn');
+
+export const toast = document.getElementById('toast');
+export const confirmModal = document.getElementById('confirmModal');
+export const confirmTitle = document.getElementById('confirmTitle');
+export const confirmMessage = document.getElementById('confirmMessage');
+export const confirmCancelBtn = document.getElementById('confirmCancelBtn');
+export const confirmOkBtn = document.getElementById('confirmOkBtn');

@@ -1,0 +1,22 @@
+/* ============================================================
+   基础重置 (Reset) 与页面级样式
+   ============================================================ */
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  user-select: none;
+}
+
+body {
+  background: var(--bg-deep);
+  min-height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-family: 'Segoe UI', 'PingFang SC', Roboto, sans-serif;
+  /* 12px 作为不支持 env() 的旧浏览器回退值 */
+  padding: 12px;
+  padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
+}

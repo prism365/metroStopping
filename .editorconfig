@@ -1,0 +1,21 @@
+# EditorConfig —— 统一编辑器/格式化器约定（纯声明，不强制格式化）
+# 规则依据项目现状实测：JS/HTML/Python 4 空格，CSS/JSON 2 空格，LF 换行
+root = true
+
+[*]
+charset = utf-8
+end_of_line = lf
+insert_final_newline = true
+trim_trailing_whitespace = true
+indent_style = space
+indent_size = 4
+
+[*.css]
+indent_size = 2
+
+[*.json]
+indent_size = 2
+
+[*.md]
+# 保留 Markdown 硬换行所需的行尾双空格
+trim_trailing_whitespace = false
