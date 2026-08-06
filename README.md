@@ -56,6 +56,7 @@
 ### 未来开发方向
 
 **性能与渲染**
+- 新增网页加载界面
 - 高分屏适配：canvas 按 `devicePixelRatio` 缩放并监听 `resize`，提升高分屏清晰度
 - 后台自动暂停：监听 `visibilitychange`，切后台时暂停游戏
 

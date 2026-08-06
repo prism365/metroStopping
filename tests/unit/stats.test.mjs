@@ -1,9 +1,9 @@
 // stats.js 纯函数单测：recordAccel / recordEntry（node:test，无 DOM 依赖）
-// 运行：npm test（= node --test tests/）
+// 运行：npm test（= node --test tests/unit/）
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { recordAccel, recordEntry } from '../src/game/stats.js';
-import { MAX_DECEL_RECORD_SPEED, PLATFORM_START } from '../src/game/data.js';
+import { recordAccel, recordEntry } from '../../src/game/stats.js';
+import { MAX_DECEL_RECORD_SPEED, PLATFORM_START } from '../../src/game/data.js';
 
 test('recordAccel：非减速只更新 currentAccel，不记录 maxDecel', () => {
     const s = { currentAccel: 0, maxDecel: 0 };

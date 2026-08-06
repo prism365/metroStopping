@@ -1,8 +1,8 @@
 // passenger.js 纯函数单测：generatePassengerComment 各分支（node:test，无 DOM 依赖）
-// 运行：npm test（= node --test tests/）
+// 运行：npm test（= node --test tests/unit/）
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { generatePassengerComment } from '../src/game/passenger.js';
+import { generatePassengerComment } from '../../src/game/passenger.js';
 
 // 未通过停靠
 test('未通过：ATC 失误', () => {

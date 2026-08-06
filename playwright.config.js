@@ -6,7 +6,7 @@ import { defineConfig } from '@playwright/test';
 const PORT = 8000;
 
 export default defineConfig({
-  testDir: './e2e',
+  testDir: './tests/e2e',
   // 冒烟用例共享同一本地服务器；单 worker 串行最稳（避免 localStorage/端口互相干扰）
   fullyParallel: false,
   workers: 1,

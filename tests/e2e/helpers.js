@@ -1,4 +1,4 @@
-// e2e/helpers.js — Playwright 冒烟测试公共设施
+// tests/e2e/helpers.js — Playwright 冒烟测试公共设施
 // 固化 test-flow.md「浏览器手动回归（交互层）」清单的公共步骤
 import { expect } from '@playwright/test';
 

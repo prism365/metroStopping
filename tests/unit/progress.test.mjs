@@ -1,5 +1,5 @@
 // progress.js 单测：成就解锁 / 关卡与车辆解锁 / 星级（需要 mock localStorage）
-// 运行：npm test（= node --test tests/）
+// 运行：npm test（= node --test tests/unit/）
 import { test, beforeEach } from 'node:test';
 import assert from 'node:assert/strict';
 
@@ -12,8 +12,8 @@ globalThis.localStorage = {
     clear: () => store.clear(),
 };
 
-import { playerProgress, achievements } from '../src/game/state.js';
-import { checkAchievements, completeLevel, isLevelUnlocked, isVehicleUnlocked } from '../src/game/progress.js';
+import { playerProgress, achievements } from '../../src/game/state.js';
+import { checkAchievements, completeLevel, isLevelUnlocked, isVehicleUnlocked } from '../../src/game/progress.js';
 
 // 用例间重置单例（achievements.map / playerProgress 为模块级共享状态）
 beforeEach(() => {

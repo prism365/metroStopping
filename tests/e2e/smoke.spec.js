@@ -1,4 +1,4 @@
-// e2e/smoke.spec.js — Playwright 冒烟测试
+// tests/e2e/smoke.spec.js — Playwright 冒烟测试
 // 固化 test-flow.md「浏览器手动回归用例清单」：
 // 开局 / 选关选车 / 返回重置 / 重置存档 / 结算 / ATC / 偏差分级 / Konami / Console 无报错
 // 运行：npm run test:e2e（webServer 自动起 scripts/serve.py 8000）
@@ -52,12 +52,13 @@ test('冒烟3 手动驾驶：升档牵引 → 速度上升 → 复位归零', as
     const speedBefore = parseInt(await page.locator('#speedDisplay').textContent());
     // 手柄为档位式（每次按 ↑ 升一档，无 keyup 处理），复位用 Space
     await page.keyboard.press('ArrowUp');
+    await page.keyboard.press('ArrowUp');          // 升到 2 档，避开 1 档平衡速度死区
     await expect(page.locator('#handleValue')).toHaveClass(/traction/, { timeout: 5_000 });
-    // 牵引生效后速度应发生变化（输入→物理→UI 链路）
+    // 牵引生效后速度应上升（2 档平衡速度 ~73km/h > 随机初速上限 64km/h）
     await page.waitForFunction(
-        (prev) => parseInt(document.querySelector('#speedDisplay').textContent) !== prev,
+        (prev) => parseInt(document.querySelector('#speedDisplay').textContent) > prev + 3,
         speedBefore,
-        { timeout: 5_000 },
+        { timeout: 8_000 },
     );
     await page.keyboard.press('Space');
     await expect(page.locator('#handleValue')).toHaveClass(/neutral/, { timeout: 5_000 });

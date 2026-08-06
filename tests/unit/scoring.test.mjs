@@ -1,8 +1,8 @@
 // scoring.js 纯函数单测：evaluateStopMetrics / computeResult（node:test，无 DOM 依赖）
-// 运行：npm test（= node --test tests/）
+// 运行：npm test（= node --test tests/unit/）
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { evaluateStopMetrics, computeResult } from '../src/game/scoring.js';
+import { evaluateStopMetrics, computeResult } from '../../src/game/scoring.js';
 
 test('evaluateStopMetrics：平滑判定边界（maxDecel<1 且 handleChanges<=4）', () => {
     assert.equal(evaluateStopMetrics(0.9, 16, 4).isSmooth, true);
