@@ -122,7 +122,17 @@ export const VEHICLES = {
         frictionFactor: 1.0,
         airResistanceFactor: 1.0,
         maxSpeed: 28.0,
-        unlockCondition: null
+        unlockCondition: null,
+        vvvf: {
+            carrier: { base: 1500, randomRange: 50, randomInterval: 0.08 },
+            freqScale: 45,
+            slipByHandle: 0.6,
+            coastGain: 0,
+            harmonic: [],
+            filters: [{ type: 'lowpass', freq: 9000, q: 0.7 }],
+            ir: 'synthetic',
+            volume: -6,
+        },
     },
     ACCEL: {
         id: 'ACCEL',
@@ -135,7 +145,17 @@ export const VEHICLES = {
         frictionFactor: 1.05,
         airResistanceFactor: 1.0,
         maxSpeed: 30.0,
-        unlockCondition: 'level1'
+        unlockCondition: 'level1',
+        vvvf: {
+            carrier: { base: 2500, randomRange: 80, randomInterval: 0.06 },
+            freqScale: 4.5,
+            slipByHandle: 0.8,
+            coastGain: 0,
+            harmonic: [],
+            filters: [{ type: 'lowpass', freq: 9000, q: 0.7 }],
+            ir: 'synthetic',
+            volume: -5,
+        },
     },
     BRAKE: {
         id: 'BRAKE',
@@ -148,7 +168,17 @@ export const VEHICLES = {
         frictionFactor: 0.95,
         airResistanceFactor: 1.0,
         maxSpeed: 26.0,
-        unlockCondition: 'level2'
+        unlockCondition: 'level2',
+        vvvf: {
+            carrier: { base: 1800, randomRange: 40, randomInterval: 0.10 },
+            freqScale: 4.5,
+            slipByHandle: 0.5,
+            coastGain: 0,
+            harmonic: [],
+            filters: [{ type: 'lowpass', freq: 9000, q: 0.7 }],
+            ir: 'synthetic',
+            volume: -5,
+        },
     },
     HYBRID: {
         id: 'HYBRID',
@@ -161,7 +191,17 @@ export const VEHICLES = {
         frictionFactor: 0.9,
         airResistanceFactor: 0.9,
         maxSpeed: 29.0,
-        unlockCondition: 'level4'
+        unlockCondition: 'level4',
+        vvvf: {
+            carrier: { base: 1600, randomRange: 50, randomInterval: 0.09 },
+            freqScale: 4.5,
+            slipByHandle: 0.6,
+            coastGain: 0,
+            harmonic: [],
+            filters: [{ type: 'lowpass', freq: 9000, q: 0.7 }],
+            ir: 'synthetic',
+            volume: -6,
+        },
     },
     PERFORMANCE: {
         id: 'PERFORMANCE',
@@ -174,7 +214,17 @@ export const VEHICLES = {
         frictionFactor: 0.6,
         airResistanceFactor: 0.6,
         maxSpeed: 35.0,
-        unlockCondition: 'level6'
+        unlockCondition: 'level6',
+        vvvf: {
+            carrier: { base: 4000, randomRange: 30, randomInterval: 0.12 },
+            freqScale: 4.5,
+            slipByHandle: 0.6,
+            coastGain: 0,
+            harmonic: [],
+            filters: [{ type: 'lowpass', freq: 9000, q: 0.7 }],
+            ir: 'synthetic',
+            volume: -7,
+        },
     },
     ATC: {
         id: 'ATC',
@@ -188,7 +238,17 @@ export const VEHICLES = {
         airResistanceFactor: 0.6,
         maxSpeed: 35.0,
         unlockCondition: 'level7',
-        isATC: true
+        isATC: true,
+        vvvf: {
+            carrier: { base: 3200, randomRange: 20, randomInterval: 0.15 },
+            freqScale: 4.5,
+            slipByHandle: 0.4,
+            coastGain: 0,
+            harmonic: [],
+            filters: [{ type: 'lowpass', freq: 9000, q: 0.7 }],
+            ir: 'synthetic',
+            volume: -8,
+        },
     }
 };
 

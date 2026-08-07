@@ -4,6 +4,7 @@ import { state, playerProgress, getVehicleParams } from './state.js';
 import { saveProgress, isLevelUnlocked, isVehicleUnlocked } from './progress.js';
 import { updateUI, showToast, showMainMenu, renderLevelGrid, renderVehicleGrid } from './ui.js';
 import { resetFull } from './flow.js';
+import { resumeFromGesture } from '../audio/audioDriver.js';
 import { mainMenu, levelView, vehicleView, upBtn, downBtn } from './dom.js';
 
 // ---------- 手柄控制 ----------
@@ -78,6 +79,7 @@ function pushKonami(key) {
 // 键盘事件（r/m 统一处理）
 document.addEventListener('keydown', (e) => {
     const key = e.key;
+    resumeFromGesture(); // 移动端 autoplay：游玩中任意按键恢复音频上下文
     if (!mainMenu.classList.contains('hidden') && (key === 'ArrowUp' || key === 'ArrowDown')) {
         pushKonami(key);
     }
@@ -100,6 +102,9 @@ document.addEventListener('keydown', (e) => {
         showMainMenu();
     }
 });
+
+// 触屏手势：游玩中恢复音频上下文（移动端 autoplay 策略）
+document.addEventListener('touchstart', () => { resumeFromGesture(); }, { passive: true });
 
 // 虚拟按键触发后门
 function setupButtonWithKonami(btn, key) {

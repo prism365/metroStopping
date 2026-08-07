@@ -1,6 +1,6 @@
 // 入口模块：游戏循环、菜单按钮绑定、初始化
 // （输入/手柄/Konami 已移至 input.js，重置存档/结算动作已移至 flow.js）
-import { state, playerProgress } from './state.js';
+import { state, playerProgress, getVehicleParams } from './state.js';
 import { LEVELS, VEHICLES } from './data.js';
 import { loadProgress, loadAchievements, saveProgress } from './progress.js';
 import { stepGame } from './sim.js';
@@ -11,6 +11,11 @@ import {
     renderLevelGrid, renderVehicleGrid,
 } from './ui.js';
 import { resetFull, startGame, returnToMenu, resetAllProgress, handleResultAction, endGame } from './flow.js';
+import {
+    init as initAudio, setProfile as setAudioProfile, update as updateAudio,
+    start as startAudio, stop as stopAudio, handleVisibilityChange,
+    __audioDebug,
+} from '../audio/audioDriver.js';
 import './input.js'; // 输入绑定（键盘/触屏/Konami）
 import {
     mainMenu, levelView, vehicleView, aboutView, achievementView,
@@ -22,6 +27,7 @@ import {
 
 // ---------- 游戏循环 ----------
 let lastTime = 0;
+let audioWasRunning = false; // 音频生命周期：游玩态翻转时 start/stop（菜单/结算/后台挂起）
 
 function gameLoop(timestamp) {
     if (!lastTime) lastTime = timestamp;
@@ -34,7 +40,15 @@ function gameLoop(timestamp) {
             if (result.ended) endGame(result.deviation, result.reason);
         }
     }
-    
+
+    // 音频生命周期：仅游玩时有声；离开游玩态挂起
+    const isRunning = state.running && !state.ended;
+    if (isRunning !== audioWasRunning) {
+        audioWasRunning = isRunning;
+        if (isRunning) startAudio(); else stopAudio();
+    }
+    updateAudio({ speed: state.speed, handle: state.handle, running: isRunning });
+
     if (state.running) drawScene();
     updateUI();
     requestAnimationFrame(gameLoop);
@@ -44,6 +58,7 @@ function gameLoop(timestamp) {
 function startGameFromMenu() {
     mainMenu.classList.add('hidden');
     startGame();
+    startAudio(); // 按钮点击即手势：尽早 resume，规避 autoplay 策略
 }
 
 // ---------- 菜单按钮绑定 ----------
@@ -93,6 +108,7 @@ document.addEventListener('vehicle-selected', (e) => {
     playerProgress.currentVehicle = id;
     saveProgress();
     resetFull();
+    setAudioProfile(VEHICLES[id].vvvf);
     showToast(`🚆 切换至 ${VEHICLES[id].name}`);
     renderVehicleGrid();
     closeView(vehicleView);
@@ -106,6 +122,11 @@ loadAchievements();
 resetFull();
 showMainMenu();
 drawScene();
+initAudio();
+setAudioProfile(getVehicleParams().vvvf);
+// e2e 调试钩子 + 后台标签页挂起
+window.__vvvfAudioDebug = __audioDebug;
+document.addEventListener('visibilitychange', () => handleVisibilityChange(document.hidden));
 requestAnimationFrame(gameLoop);
 
 canvas.addEventListener('click', () => canvas.focus());

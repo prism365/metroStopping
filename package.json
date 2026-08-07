@@ -6,7 +6,7 @@
   "scripts": {
     "test": "node --test \"tests/unit/*.test.mjs\"",
     "test:e2e": "playwright test",
-    "test:all": "node scripts/verify-physics.mjs && npm test && npm run test:e2e"
+    "test:all": "node scripts/verify-physics.mjs && node scripts/verify-vvvf.mjs && npm test && npm run test:e2e"
   },
   "description": "地铁停靠小游戏（纯前端 ESM，无构建工具；type:module 供 Node 回归脚本 import 源码）",
   "devDependencies": {
