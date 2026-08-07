@@ -24,6 +24,7 @@ export const levelView = document.getElementById('levelView');
 export const vehicleView = document.getElementById('vehicleView');
 export const settingsView = document.getElementById('settingsView');
 export const aboutView = document.getElementById('aboutView');
+export const aboutVersion = document.getElementById('aboutVersion');
 export const visualSettingsView = document.getElementById('visualSettingsView');
 export const audioSettingsView = document.getElementById('audioSettingsView');
 export const achievementView = document.getElementById('achievementView');

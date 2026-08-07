@@ -5,6 +5,7 @@ import { state, playerProgress, achievements, getLevelParams } from './state.js'
 import { isLevelUnlocked, isVehicleUnlocked } from './progress.js';
 import { settings } from './settings.js';
 import { ZONE_STYLES } from './render.js';
+import { APP_VERSION } from './version.js';
 import {
     speedDisplay, deviationDisplay, statusBadge, levelDisplay, handleValue, routeInfo,
     mainMenu, levelView, vehicleView, settingsView, aboutView, visualSettingsView, audioSettingsView,
@@ -218,6 +219,7 @@ export function showAboutView() {
     mainMenu.classList.add('hidden');
     settingsView.classList.add('hidden');
     aboutView.classList.remove('hidden');
+    aboutVersion.textContent = APP_VERSION;
 }
 
 export function showVisualSettingsView() {
