@@ -140,9 +140,12 @@ setupButtonWithKonami(upBtn, 'ArrowUp');
 setupButtonWithKonami(downBtn, 'ArrowDown');
 
 // 允许列表滚动（触屏）
+// 白名单：游戏区外的可滚动容器（关卡/车辆/成就网格 + 设置列表 + 音量滑块）
+// 注意：新增可滚动/可拖动 UI 时必须同步加入白名单，否则 touchmove 被 preventDefault 拦截
 document.addEventListener('touchmove', (e) => {
     const target = e.target;
-    if (target.closest('.level-grid') || target.closest('.vehicle-grid') || target.closest('.achievement-list')) {
+    if (target.closest('.level-grid') || target.closest('.vehicle-grid') || target.closest('.achievement-list')
+        || target.closest('.settings-menu') || target.closest('.range-slider')) {
         return;
     }
     if (e.target.closest('.game-container')) {

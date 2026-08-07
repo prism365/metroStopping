@@ -12,12 +12,28 @@ let master = null;
 let currentProfile = null;
 let audioActive = false;   // 游玩态（是否驱动发声）
 
+// 设置状态（由 setSoundEnabled/setPostEnabled/setVolume 写入；init 完成后生效）
+let soundEnabled = true;   // VVVF 音效总开关
+let postEnabled = true;    // 音效后处理（biquad+convolver）开关
+let volume = 70;           // 音量 0-100（线性）
+
 // e2e 调试钩子（Playwright 只读断言用；main.js 挂到 window）
 export const __audioDebug = () => ({
     contextState: ctx ? ctx.state : 'none',
     audioActive,
     carrierBase: currentProfile ? currentProfile.carrier.base : null,
+    soundEnabled,
+    postEnabled,
+    volume,
 });
+
+// 主增益 = 音量滑块(0-100 线性) × 车辆 profile 音量(dB) × 0.9；soundEnabled=false 时静音
+function applyMasterGain() {
+    if (!master) return;
+    master.gain.value = soundEnabled
+        ? Math.pow(10, (currentProfile?.volume ?? 0) / 20) * (volume / 100) * 0.9
+        : 0;
+}
 
 // ---------- 惰性初始化（主菜单空闲时预加载，避免首局卡顿）----------
 export async function init() {
@@ -43,6 +59,7 @@ export async function init() {
     compressor.connect(master);
     master.connect(ctx.destination);
     workletNode.connect(compressor);
+    applyMasterGain();
 
     // 若 setProfile 先于 init 完成，补发配置
     if (currentProfile) {
@@ -57,6 +74,12 @@ function rebuildPostChain() {
     if (!ctx || !workletNode) return;
     try {
         workletNode.disconnect();
+        if (!postEnabled) {
+            // 后处理关闭：绕过 biquad/convolver，worklet 直达压缩器
+            workletNode.connect(compressor);
+            applyMasterGain();
+            return;
+        }
         let prev = workletNode;
         for (const f of currentProfile.filters ?? []) {
             const bq = ctx.createBiquadFilter();
@@ -81,12 +104,13 @@ function rebuildPostChain() {
             prev = conv;
         }
         prev.connect(compressor);
-        if (master) master.gain.value = Math.pow(10, (currentProfile.volume ?? 0) / 20) * 0.9;
+        applyMasterGain();
     } catch (err) {
         // 音频后处理失败不阻断游戏：回退到 worklet → compressor 直达
         console.warn('[audio] 后处理链配置失败，已回退直达链:', err);
         try { workletNode.disconnect(); } catch { /* noop */ }
         workletNode.connect(compressor);
+        applyMasterGain();
     }
 }
 
@@ -97,6 +121,29 @@ export function setProfile(profile) {
         workletNode.port.postMessage({ carrier: currentProfile.carrier, seed: 1 });
         rebuildPostChain();
     }
+}
+
+// ---------- 设置应用（main.js 统一编排；setter 仅存值，init/rebuild 时生效）----------
+export function setSoundEnabled(enabled) {
+    soundEnabled = !!enabled;
+    if (ctx && workletNode) {
+        applyMasterGain();
+        if (!soundEnabled) {
+            // 立即停声（后续 update 仍会发激励，由 master 增益静音）
+            workletNode.port.postMessage({ freq: 0, excitation: 0 });
+        }
+    }
+}
+
+export function setPostEnabled(enabled) {
+    postEnabled = !!enabled;
+    if (ctx && workletNode) rebuildPostChain();
+}
+
+export function setVolume(v) {
+    const n = Number(v);
+    volume = Number.isFinite(n) ? Math.max(0, Math.min(100, n)) : 70;
+    if (ctx && workletNode) applyMasterGain();
 }
 
 // ---------- 每帧同步（主线程只发低频控制量，平滑在音频线程）----------

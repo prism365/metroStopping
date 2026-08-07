@@ -6,23 +6,32 @@ import { loadProgress, loadAchievements, saveProgress } from './progress.js';
 import { stepGame } from './sim.js';
 import { drawScene } from './render.js';
 import {
-    updateUI, showToast, showConfirmDialog, showMainMenu, closeView,
-    showLevelView, showVehicleView, showAboutView, showAchievementView,
-    renderLevelGrid, renderVehicleGrid,
+    updateUI, showToast, showConfirmDialog, showMainMenu, closeView, closeSettingsSubview,
+    showLevelView, showVehicleView, showSettingsView, showAboutView,
+    showVisualSettingsView, showAudioSettingsView, showAchievementView,
+    renderLevelGrid, renderVehicleGrid, renderSettingsControls,
 } from './ui.js';
 import { resetFull, startGame, returnToMenu, resetAllProgress, handleResultAction, endGame } from './flow.js';
+import { loadSettings, saveSettings, settings, resetToDefaults } from './settings.js';
 import {
     init as initAudio, setProfile as setAudioProfile, update as updateAudio,
     start as startAudio, stop as stopAudio, handleVisibilityChange,
+    setSoundEnabled, setPostEnabled, setVolume,
     __audioDebug,
 } from '../audio/audioDriver.js';
 import './input.js'; // 输入绑定（键盘/触屏/Konami）
 import {
-    mainMenu, levelView, vehicleView, aboutView, achievementView,
-    startGameBtn, levelMenuBtn, vehicleMenuBtn, achievementMenuBtn, aboutMenuBtn,
+    mainMenu, levelView, vehicleView, settingsView, aboutView, visualSettingsView, audioSettingsView,
+    achievementView,
+    startGameBtn, levelMenuBtn, vehicleMenuBtn, achievementMenuBtn, settingsMenuBtn,
     closeLevelBtn, closeLevelViewBtn, closeVehicleBtn, closeVehicleViewBtn,
-    closeAboutBtn, closeAboutViewBtn, closeAchievementBtn, closeAchievementViewBtn,
-    resetStorageBtn, resultBtn, menuReturnBtn, resetBtn, canvas,
+    closeSettingsBtn, closeSettingsViewBtn,
+    closeAboutBtn, closeAboutViewBtn,
+    closeVisualSettingsBtn, closeVisualSettingsViewBtn,
+    closeAudioSettingsBtn, closeAudioSettingsViewBtn,
+    closeAchievementBtn, closeAchievementViewBtn,
+    settingsAboutItem, settingsVisualItem, settingsAudioItem,
+    restoreDefaultsBtn, resetStorageBtn, resultBtn, menuReturnBtn, resetBtn, canvas,
 } from './dom.js';
 
 // ---------- 游戏循环 ----------
@@ -66,18 +75,34 @@ startGameBtn.addEventListener('click', startGameFromMenu);
 levelMenuBtn.addEventListener('click', showLevelView);
 vehicleMenuBtn.addEventListener('click', showVehicleView);
 achievementMenuBtn.addEventListener('click', showAchievementView);
-aboutMenuBtn.addEventListener('click', showAboutView);
+settingsMenuBtn.addEventListener('click', showSettingsView);
 
-// 关闭按钮（X 与 返回 共用同一动作）
+// 设置多级菜单：列表 → 子页
+settingsAboutItem.addEventListener('click', showAboutView);
+settingsVisualItem.addEventListener('click', showVisualSettingsView);
+settingsAudioItem.addEventListener('click', showAudioSettingsView);
+
+// 关闭按钮（X 与 返回 共用同一动作）：一级视图关闭回主菜单
 const closePairs = [
     [closeLevelBtn, closeLevelViewBtn, levelView],
     [closeVehicleBtn, closeVehicleViewBtn, vehicleView],
-    [closeAboutBtn, closeAboutViewBtn, aboutView],
+    [closeSettingsBtn, closeSettingsViewBtn, settingsView],
     [closeAchievementBtn, closeAchievementViewBtn, achievementView],
 ];
 closePairs.forEach(([xBtn, backBtn, view]) => {
     xBtn.addEventListener('click', () => closeView(view));
     backBtn.addEventListener('click', () => closeView(view));
+});
+
+// 设置子页关闭（X 与 返回）→ 回设置列表
+const subviewPairs = [
+    [closeAboutBtn, closeAboutViewBtn, aboutView],
+    [closeVisualSettingsBtn, closeVisualSettingsViewBtn, visualSettingsView],
+    [closeAudioSettingsBtn, closeAudioSettingsViewBtn, audioSettingsView],
+];
+subviewPairs.forEach(([xBtn, backBtn, view]) => {
+    xBtn.addEventListener('click', () => closeSettingsSubview(view));
+    backBtn.addEventListener('click', () => closeSettingsSubview(view));
 });
 
 resetStorageBtn.addEventListener('click', async () => {
@@ -86,6 +111,29 @@ resetStorageBtn.addEventListener('click', async () => {
     const secondConfirm = await showConfirmDialog('所有游戏进度将无法恢复！确定要继续？', '再次确认', '确认重置', '取消');
     if (!secondConfirm) return;
     resetAllProgress();
+});
+
+// 恢复默认设置：单次确认（低风险，不涉及进度数据）→ 重置 + 保存 + 控件刷新 + 应用音频
+restoreDefaultsBtn.addEventListener('click', async () => {
+    const confirmed = await showConfirmDialog('确定要恢复默认设置吗？将重置所有音频设置。', '恢复默认设置', '确认', '取消');
+    if (!confirmed) return;
+    resetToDefaults();
+    renderSettingsControls();
+    setSoundEnabled(settings.soundEnabled);
+    setPostEnabled(settings.postEnabled);
+    setVolume(settings.volume);
+    showToast('⚙️ 已恢复默认设置');
+});
+
+// 设置项变更（ui.js 上抛意图）→ 持久化 + 应用 audioDriver
+// （同选关/选车模式：本入口统一编排，ui 不依赖 audio/flow）
+document.addEventListener('settings-changed', (e) => {
+    const { key, value } = e.detail;
+    settings[key] = value;
+    saveSettings();
+    if (key === 'soundEnabled') setSoundEnabled(value);
+    else if (key === 'postEnabled') setPostEnabled(value);
+    else if (key === 'volume') setVolume(value);
 });
 
 menuReturnBtn.addEventListener('click', returnToMenu);
@@ -119,11 +167,16 @@ resultBtn.addEventListener('click', handleResultAction);
 // ---------- 初始化 ----------
 loadProgress();
 loadAchievements();
+loadSettings();
 resetFull();
 showMainMenu();
 drawScene();
 initAudio();
 setAudioProfile(getVehicleParams().vvvf);
+// 应用已存设置（audioDriver 未完成 init 时 setter 仅存值，init/rebuild 时生效）
+setSoundEnabled(settings.soundEnabled);
+setPostEnabled(settings.postEnabled);
+setVolume(settings.volume);
 // e2e 调试钩子 + 后台标签页挂起
 window.__vvvfAudioDebug = __audioDebug;
 document.addEventListener('visibilitychange', () => handleVisibilityChange(document.hidden));

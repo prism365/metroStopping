@@ -37,7 +37,7 @@
                     <button class="overlay-btn secondary small" id="levelMenuBtn">🗺️ 关卡</button>
                     <button class="overlay-btn secondary small" id="vehicleMenuBtn">🚆 车辆</button>
                     <button class="overlay-btn secondary small" id="achievementMenuBtn">🏆 成就</button>
-                    <button class="overlay-btn secondary small" id="aboutMenuBtn">ℹ️ 关于</button>
+                    <button class="overlay-btn secondary small" id="settingsMenuBtn">⚙️ 设置</button>
                 </div>
             </div>
         </div>
@@ -57,18 +57,82 @@
             <div class="vehicle-grid" id="vehicleGridContainer"></div>
             <button class="overlay-btn secondary" id="closeVehicleViewBtn">返回</button>
         </div>
-        <!-- 关于页面 -->
+        <!-- 设置（多级：列表页 → 子页） -->
+        <div class="overlay hidden" id="settingsView">
+            <button class="close-btn" id="closeSettingsBtn">✕</button>
+            <div class="icon">⚙️</div>
+            <div class="main-text md">设置</div>
+            <div class="settings-body">
+                <div class="settings-menu">
+                    <button class="settings-menu-item" id="settingsVisualItem">
+                        <span class="settings-item-icon">🖼️</span>
+                        <span class="settings-item-label">画面</span>
+                        <span class="settings-item-chevron">›</span>
+                    </button>
+                    <button class="settings-menu-item" id="settingsAudioItem">
+                        <span class="settings-item-icon">🎵</span>
+                        <span class="settings-item-label">音频</span>
+                        <span class="settings-item-chevron">›</span>
+                    </button>
+                    <button class="settings-menu-item" id="settingsAboutItem">
+                        <span class="settings-item-icon">ℹ️</span>
+                        <span class="settings-item-label">关于</span>
+                        <span class="settings-item-chevron">›</span>
+                    </button>
+                    <div class="settings-menu-divider"></div>
+                    <button class="settings-menu-item" id="restoreDefaultsBtn">
+                        <span class="settings-item-icon">🔄</span>
+                        <span class="settings-item-label">恢复默认设置</span>
+                    </button>
+                    <button class="settings-menu-item danger" id="resetStorageBtn">
+                        <span class="settings-item-icon">🗑️</span>
+                        <span class="settings-item-label">重置存档</span>
+                    </button>
+                </div>
+            </div>
+            <button class="overlay-btn secondary" id="closeSettingsViewBtn">返回</button>
+        </div>
+        <!-- 画面子页 -->
+        <div class="overlay hidden" id="visualSettingsView">
+            <button class="close-btn" id="closeVisualSettingsBtn">✕</button>
+            <div class="icon">🖼️</div>
+            <div class="main-text md">画面</div>
+            <div class="settings-placeholder">（预留：画质选项）</div>
+            <button class="overlay-btn secondary" id="closeVisualSettingsViewBtn">返回</button>
+        </div>
+        <!-- 音频子页 -->
+        <div class="overlay hidden" id="audioSettingsView">
+            <button class="close-btn" id="closeAudioSettingsBtn">✕</button>
+            <div class="icon">🎵</div>
+            <div class="main-text md">音频</div>
+            <div class="settings-body">
+                <label class="settings-row">
+                    <span class="settings-label">VVVF 音效</span>
+                    <input type="checkbox" class="toggle" id="vvvfSoundToggle" checked>
+                </label>
+                <label class="settings-row" id="postFxRow">
+                    <span class="settings-label">音效后处理</span>
+                    <input type="checkbox" class="toggle" id="postFxToggle" checked>
+                </label>
+                <div class="settings-row">
+                    <span class="settings-label">音量 <span class="settings-volume-value" id="volumeValue">70</span></span>
+                    <input type="range" class="range-slider" id="volumeSlider" min="0" max="100" step="1" value="70">
+                </div>
+            </div>
+            <button class="overlay-btn secondary" id="closeAudioSettingsViewBtn">返回</button>
+        </div>
+         <!-- 关于子页 -->
         <div class="overlay hidden" id="aboutView">
             <button class="close-btn" id="closeAboutBtn">✕</button>
             <div class="icon">ℹ️</div>
             <div class="main-text md">关于</div>
             <div class="sub-text about">
-                一个简单的地铁停靠游戏，主要基于 Deepseek V4 对话实现，并手动润色。<br>
+                一个简单的地铁停靠游戏<br>
+                主要基于 Deepseek V4 对话实现，并手动润色<br>
                 开发者：Prism powered by Vibe Coding : )<br>
                 版本信息：1.0.1<br>
                 GitHub： <a href="https://github.com/prism365/metroStopping" target="_blank">https://github.com/prism365/metroStopping</a>
             </div>
-            <button class="overlay-btn" id="resetStorageBtn">🗑️重置存档</button>
             <button class="overlay-btn secondary" id="closeAboutViewBtn">返回</button>
         </div>
         <!-- 成就查看 -->

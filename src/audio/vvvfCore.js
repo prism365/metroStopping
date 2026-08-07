@@ -49,7 +49,6 @@ export function modulateSignal(signal, carrier) {
 //   carrier: { base, randomRange, randomInterval, wave? }   载波基频 Hz / 随机幅度 Hz / 随机间隔 s / 载波波形
 //   freqScale: 速度→电气频率换算（Hz/(m/s)）
 //   slipByHandle: 手柄→滑差（Hz/手柄档）
-//   coastGain: 惰行激励（0=静音）
 //   minSpeed: 停稳判定速度（m/s）
 //   volume: 混音音量（dB）
 //   filters: 车厢滤波预设（P5 用，透传）
@@ -59,7 +58,6 @@ export function normalizeProfile(profile = {}) {
         carrier: { base: 2000, randomRange: 0, randomInterval: 0, ...(profile.carrier ?? {}) },
         freqScale: profile.freqScale ?? 4.5,
         slipByHandle: profile.slipByHandle ?? 0.6,
-        coastGain: profile.coastGain ?? 0,
         minSpeed: profile.minSpeed ?? 0.01,
         volume: profile.volume ?? 0,
         filters: profile.filters ?? [],
@@ -68,10 +66,9 @@ export function normalizeProfile(profile = {}) {
 }
 
 // ---------- 激励门控 ----------
-// 停稳(≤minSpeed) → 0；惰行(handle==0 且速度>0) → coastGain（默认 0=静音）；否则 1。
-function getExcitation(p, { speed, handle }) {
+// 停稳(≤minSpeed) → 0；否则持续发声（2026-08-07 去除惰行静音：惰行/牵引/制动均发声）。
+function getExcitation(p, { speed }) {
     if (speed <= p.minSpeed) return 0;
-    // if (handle === 0) return p.coastGain;
     return 1;
 }
 

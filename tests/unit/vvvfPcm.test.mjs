@@ -50,7 +50,7 @@ feature('F3 声核输出 PCM', {
             assert.deepEqual([...a], [...b]);
         },
     },
-    '激励门控：惰行(handle==0) 输出全零（默认 coastGain=0）': {
+    '激励门控：惰行(handle==0) 持续发声（非静音，2026-08-07 去除惰行静音）': {
         given: () => ({
             profile, sampleRate: SR, numSamples: 4800, seed: 1,
             state: { speed: 10, handle: 0 },
@@ -58,7 +58,7 @@ feature('F3 声核输出 PCM', {
         when: ({ profile, state, sampleRate, numSamples, seed }) =>
             renderPcm({ profile, state, sampleRate, numSamples, seed }),
         then: (ctx, out) => {
-            assert.ok(out.every((v) => v === 0), '惰行应静音');
+            assert.ok(out.some((v) => v !== 0), '惰行应持续发声（非静音）');
         },
     },
     '激励门控：停稳(speed==0) 输出全零': {

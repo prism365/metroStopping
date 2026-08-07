@@ -108,6 +108,197 @@
 .overlay-btn.secondary:hover { background: var(--card-bg-hover); }
 .overlay-btn.small { padding: 6px 20px; font-size: 14px; min-width: 80px; }
 
+/* ---------- 设置页（多级菜单） ---------- */
+.settings-body {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 18px;
+  width: 100%;
+  max-width: 420px;
+  margin-bottom: 12px;
+}
+
+/* 设置列表（多级菜单一级）：独立滚动容器（与关卡/车辆/成就网格一致） */
+.settings-menu {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  width: 100%;
+  max-width: 320px;
+  max-height: 220px;
+  overflow-y: auto;
+  touch-action: pan-y; /* 触屏纵向滚动 */
+  padding: 10px;
+  background: rgba(0, 0, 0, 0.3);
+  border-radius: 16px;
+  margin: 8px 0 12px;
+  -webkit-overflow-scrolling: touch;
+}
+
+.settings-menu-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  padding: 12px 16px;
+  background: var(--card-bg);
+  border: 1px solid var(--card-border);
+  border-radius: 12px;
+  font-size: 15px;
+  font-family: inherit;
+  color: var(--text-main);
+  cursor: pointer;
+  transition: background 0.15s, transform 0.15s;
+}
+
+/* 触屏兼容：hover 仅鼠标设备生效（防触屏点击后背景粘滞） */
+@media (hover: hover) {
+  .settings-menu-item:hover {
+    background: var(--card-bg-hover);
+  }
+}
+
+.settings-menu-item:active {
+  transform: scale(0.98);
+}
+
+.settings-item-icon {
+  font-size: 20px;
+}
+
+.settings-item-label {
+  flex: 1;
+  text-align: left;
+}
+
+.settings-item-chevron {
+  color: var(--text-faint);
+  font-size: 18px;
+}
+
+.settings-menu-divider {
+  height: 1px;
+  width: 100%;
+  background: var(--border-blue);
+  margin: 2px 0;
+}
+
+/* 数据管理（列表样式一致，底部）：恢复默认 / 重置存档 */
+.settings-menu-item.danger {
+  color: var(--red);
+  border-color: var(--red-border);
+}
+
+@media (hover: hover) {
+  .settings-menu-item.danger:hover {
+    background: var(--red-bg);
+  }
+}
+
+.settings-placeholder {
+  font-size: 13px;
+  color: var(--text-faint);
+}
+
+.settings-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  width: 100%;
+  max-width: 320px;
+  padding: 8px 14px;
+  background: var(--card-bg);
+  border: 1px solid var(--card-border);
+  border-radius: 10px;
+  cursor: pointer;
+}
+
+.settings-label {
+  font-size: 14px;
+  color: var(--text-main);
+}
+
+.settings-volume-value {
+  color: var(--gold);
+  font-weight: 700;
+}
+
+/* 开关（checkbox 定制为 switch） */
+.toggle {
+  appearance: none;
+  -webkit-appearance: none;
+  width: 44px;
+  height: 24px;
+  border-radius: 12px;
+  background: var(--card-bg-hover);
+  border: 1px solid var(--border-blue);
+  position: relative;
+  cursor: pointer;
+  transition: background 0.2s;
+  flex-shrink: 0;
+}
+
+.toggle::after {
+  content: '';
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: var(--text-secondary);
+  transition: transform 0.2s, background 0.2s;
+}
+
+.toggle:checked {
+  background: var(--green-bg);
+  border-color: var(--green-border);
+}
+
+.toggle:checked::after {
+  transform: translateX(20px);
+  background: var(--green);
+}
+
+.toggle:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+/* 音量滑块 */
+.range-slider {
+  appearance: none;
+  -webkit-appearance: none;
+  width: 140px;
+  height: 6px;
+  border-radius: 3px;
+  background: var(--card-bg-hover);
+  outline: none;
+  flex-shrink: 0;
+}
+
+.range-slider::-webkit-slider-thumb {
+  appearance: none;
+  -webkit-appearance: none;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: var(--gold);
+  cursor: pointer;
+  border: none;
+}
+
+.range-slider::-moz-range-thumb {
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: var(--gold);
+  cursor: pointer;
+  border: none;
+}
+
 /* ---------- 关闭按钮 ---------- */
 .close-btn {
   position: absolute;
@@ -181,6 +372,7 @@
   max-width: 560px;
   max-height: 220px;
   overflow-y: auto;
+  touch-action: pan-y; /* 触屏纵向滚动 */
   padding: 10px;
   background: rgba(0, 0, 0, 0.3);
   border-radius: 16px;

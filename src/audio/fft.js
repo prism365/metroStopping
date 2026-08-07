@@ -71,6 +71,13 @@ export function globalMax(mag) {
     return m;
 }
 
+// 载波带分析：自适应窗口 [base ± (randomRange+margin)]，返回该带的 regionStats。
+// PWM 边带位于 base±n·f_elec（间距随 freqScale 变化），宽窗会纳入不对称边带导致质心偏移；
+// 收窄到载波带可排除边带，使「质心≈base」断言与音效参数（freqScale/基频）调优解耦。
+export function carrierBand(mag, sampleRate, base, randomRange = 0, margin = 40) {
+    return regionStats(mag, sampleRate, base - randomRange - margin, base + randomRange + margin);
+}
+
 // 频带统计：能量加权质心 / RMS 带宽 / 峰值谱线。
 // 用于「载波区」断言：PWM 的载波边带关于 fc 对称，故能量质心 ≈ fc（理论鲁棒）。
 export function regionStats(mag, sampleRate, loHz, hiHz) {

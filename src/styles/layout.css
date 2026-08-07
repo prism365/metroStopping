@@ -128,7 +128,9 @@
   border-radius: var(--radius-md);
   overflow: hidden;
   box-shadow: var(--shadow-canvas);
-  touch-action: none;
+  /* 触屏兼容：pan-y 允许 overlay 内纵向滚动（设置列表/网格）；
+     canvas/ctrl-btn 各自声明 touch-action:none 仍阻断其上的手势 */
+  touch-action: pan-y;
   width: 100%;
   /* 默认宽度由画布撑起，竖屏时通过媒体查询覆盖 */
 }

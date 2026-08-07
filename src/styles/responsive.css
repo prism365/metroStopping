@@ -52,6 +52,13 @@
   .overlay .sub-text { font-size: 12px; }
   .overlay .route-info { font-size: 13px; }
   .overlay-btn { font-size: 14px; padding: 6px 16px; min-width: 80px; }
+  .settings-row { max-width: 260px; padding: 6px 10px; }
+  .settings-label { font-size: 12px; }
+  .settings-body { gap: 14px; }
+  .range-slider { width: 110px; }
+  .settings-menu { max-width: 280px; gap: 8px; max-height: 160px; padding: 8px; }
+  .settings-menu-item { padding: 10px 12px; font-size: 14px; }
+  .settings-item-icon { font-size: 18px; }
   .level-grid, .vehicle-grid, .achievement-list { max-height: 160px; }
   .level-card { width: 80px; padding: 4px 6px; }
   .level-card .lv-icon { font-size: 20px; }

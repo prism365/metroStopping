@@ -3,11 +3,14 @@
 import { LEVELS, VEHICLES, DEVIATION_BANDS } from './data.js';
 import { state, playerProgress, achievements, getLevelParams } from './state.js';
 import { isLevelUnlocked, isVehicleUnlocked } from './progress.js';
+import { settings } from './settings.js';
 import { ZONE_STYLES } from './render.js';
 import {
     speedDisplay, deviationDisplay, statusBadge, levelDisplay, handleValue, routeInfo,
-    mainMenu, levelView, vehicleView, aboutView, achievementView, countdownOverlay, resultOverlay,
+    mainMenu, levelView, vehicleView, settingsView, aboutView, visualSettingsView, audioSettingsView,
+    achievementView, countdownOverlay, resultOverlay,
     levelGridContainer, vehicleGridContainer, achievementListContainer,
+    vvvfSoundToggle, postFxToggle, volumeSlider, volumeValue,
     toast, confirmModal, confirmTitle, confirmMessage, confirmOkBtn, confirmCancelBtn,
 } from './dom.js';
 
@@ -169,14 +172,24 @@ export function showMainMenu() {
     levelView.classList.add('hidden');
     vehicleView.classList.add('hidden');
     achievementView.classList.add('hidden');
+    settingsView.classList.add('hidden');
     aboutView.classList.add('hidden');
+    visualSettingsView.classList.add('hidden');
+    audioSettingsView.classList.add('hidden');
     countdownOverlay.classList.add('hidden');
     resultOverlay.classList.remove('show');
 }
 
+// 关闭视图回主菜单（设置列表 / 关卡 / 车辆 / 成就 用）
 export function closeView(view) {
     view.classList.add('hidden');
     mainMenu.classList.remove('hidden');
+}
+
+// 设置子页关闭 → 回设置列表（多级导航）
+export function closeSettingsSubview(view) {
+    view.classList.add('hidden');
+    settingsView.classList.remove('hidden');
 }
 
 export function showLevelView() {
@@ -191,10 +204,57 @@ export function showVehicleView() {
     renderVehicleGrid();
 }
 
+// 设置列表页（多级菜单一级）
+export function showSettingsView() {
+    mainMenu.classList.add('hidden');
+    aboutView.classList.add('hidden');
+    visualSettingsView.classList.add('hidden');
+    audioSettingsView.classList.add('hidden');
+    settingsView.classList.remove('hidden');
+}
+
+// 设置子页（多级菜单二级）
 export function showAboutView() {
     mainMenu.classList.add('hidden');
+    settingsView.classList.add('hidden');
     aboutView.classList.remove('hidden');
 }
+
+export function showVisualSettingsView() {
+    mainMenu.classList.add('hidden');
+    settingsView.classList.add('hidden');
+    visualSettingsView.classList.remove('hidden');
+}
+
+export function showAudioSettingsView() {
+    mainMenu.classList.add('hidden');
+    settingsView.classList.add('hidden');
+    audioSettingsView.classList.remove('hidden');
+    renderSettingsControls();
+}
+
+// 设置控件回填：初值 + 二级开关（音效后处理）随 VVVF 总开关置灰联动
+// （导出供 main.js 在「恢复默认设置」后刷新回填）
+export function renderSettingsControls() {
+    vvvfSoundToggle.checked = settings.soundEnabled;
+    postFxToggle.checked = settings.postEnabled;
+    postFxToggle.disabled = !settings.soundEnabled;
+    volumeSlider.value = settings.volume;
+    volumeValue.textContent = settings.volume;
+}
+
+// 设置项变更 → 仅上抛意图（main.js 统一编排：持久化 + 应用 audioDriver）
+vvvfSoundToggle.addEventListener('change', () => {
+    postFxToggle.disabled = !vvvfSoundToggle.checked;
+    document.dispatchEvent(new CustomEvent('settings-changed', { detail: { key: 'soundEnabled', value: vvvfSoundToggle.checked } }));
+});
+postFxToggle.addEventListener('change', () => {
+    document.dispatchEvent(new CustomEvent('settings-changed', { detail: { key: 'postEnabled', value: postFxToggle.checked } }));
+});
+volumeSlider.addEventListener('input', () => {
+    volumeValue.textContent = volumeSlider.value;
+    document.dispatchEvent(new CustomEvent('settings-changed', { detail: { key: 'volume', value: parseInt(volumeSlider.value, 10) } }));
+});
 
 export function showAchievementView() {
     mainMenu.classList.add('hidden');
