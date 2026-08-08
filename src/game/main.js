@@ -8,7 +8,7 @@ import { drawScene } from './render.js';
 import {
     updateUI, showToast, showConfirmDialog, showMainMenu, closeView, closeSettingsSubview,
     showLevelView, showVehicleView, showSettingsView, showAboutView,
-    showVisualSettingsView, showAudioSettingsView, showAchievementView,
+    showVisualSettingsView, showAudioSettingsView, showDevSettingsView, showAchievementView,
     renderLevelGrid, renderVehicleGrid, renderSettingsControls,
 } from './ui.js';
 import { resetFull, startGame, returnToMenu, resetAllProgress, handleResultAction, endGame } from './flow.js';
@@ -16,12 +16,13 @@ import { loadSettings, saveSettings, settings, resetToDefaults } from './setting
 import {
     init as initAudio, setProfile as setAudioProfile, update as updateAudio,
     start as startAudio, stop as stopAudio, handleVisibilityChange,
-    setSoundEnabled, setPostEnabled, setVolume,
+    setSoundEnabled, setPostEnabled, setVolume, setMonitorEnabled,
     __audioDebug,
 } from '../audio/audioDriver.js';
+import { initMonitor, setMonitorVisible, updateMonitor } from './monitor.js';
 import './input.js'; // 输入绑定（键盘/触屏/Konami）
 import {
-    mainMenu, levelView, vehicleView, settingsView, aboutView, visualSettingsView, audioSettingsView,
+    mainMenu, levelView, vehicleView, settingsView, aboutView, visualSettingsView, audioSettingsView, devSettingsView,
     achievementView,
     startGameBtn, levelMenuBtn, vehicleMenuBtn, achievementMenuBtn, settingsMenuBtn,
     closeLevelBtn, closeLevelViewBtn, closeVehicleBtn, closeVehicleViewBtn,
@@ -29,8 +30,9 @@ import {
     closeAboutBtn, closeAboutViewBtn,
     closeVisualSettingsBtn, closeVisualSettingsViewBtn,
     closeAudioSettingsBtn, closeAudioSettingsViewBtn,
+    closeDevSettingsBtn, closeDevSettingsViewBtn,
     closeAchievementBtn, closeAchievementViewBtn,
-    settingsAboutItem, settingsVisualItem, settingsAudioItem,
+    settingsAboutItem, settingsVisualItem, settingsAudioItem, settingsDevItem,
     restoreDefaultsBtn, resetStorageBtn, resultBtn, menuReturnBtn, resetBtn, canvas,
 } from './dom.js';
 
@@ -57,6 +59,7 @@ function gameLoop(timestamp) {
         if (isRunning) startAudio(); else stopAudio();
     }
     updateAudio({ speed: state.speed, handle: state.handle, running: isRunning });
+    updateMonitor();
 
     if (state.running) drawScene();
     updateUI();
@@ -81,6 +84,7 @@ settingsMenuBtn.addEventListener('click', showSettingsView);
 settingsAboutItem.addEventListener('click', showAboutView);
 settingsVisualItem.addEventListener('click', showVisualSettingsView);
 settingsAudioItem.addEventListener('click', showAudioSettingsView);
+settingsDevItem.addEventListener('click', showDevSettingsView);
 
 // 关闭按钮（X 与 返回 共用同一动作）：一级视图关闭回主菜单
 const closePairs = [
@@ -99,6 +103,7 @@ const subviewPairs = [
     [closeAboutBtn, closeAboutViewBtn, aboutView],
     [closeVisualSettingsBtn, closeVisualSettingsViewBtn, visualSettingsView],
     [closeAudioSettingsBtn, closeAudioSettingsViewBtn, audioSettingsView],
+    [closeDevSettingsBtn, closeDevSettingsViewBtn, devSettingsView],
 ];
 subviewPairs.forEach(([xBtn, backBtn, view]) => {
     xBtn.addEventListener('click', () => closeSettingsSubview(view));
@@ -122,6 +127,8 @@ restoreDefaultsBtn.addEventListener('click', async () => {
     setSoundEnabled(settings.soundEnabled);
     setPostEnabled(settings.postEnabled);
     setVolume(settings.volume);
+    setMonitorEnabled(settings.vvvfMonitor);
+    setMonitorVisible(settings.vvvfMonitor);
     showToast('⚙️ 已恢复默认设置');
 });
 
@@ -134,6 +141,7 @@ document.addEventListener('settings-changed', (e) => {
     if (key === 'soundEnabled') setSoundEnabled(value);
     else if (key === 'postEnabled') setPostEnabled(value);
     else if (key === 'volume') setVolume(value);
+    else if (key === 'vvvfMonitor') { setMonitorEnabled(value); setMonitorVisible(value); }
 });
 
 menuReturnBtn.addEventListener('click', returnToMenu);
@@ -177,6 +185,9 @@ setAudioProfile(getVehicleParams().vvvf);
 setSoundEnabled(settings.soundEnabled);
 setPostEnabled(settings.postEnabled);
 setVolume(settings.volume);
+setMonitorEnabled(settings.vvvfMonitor);
+setMonitorVisible(settings.vvvfMonitor);
+initMonitor();
 // e2e 调试钩子 + 后台标签页挂起
 window.__vvvfAudioDebug = __audioDebug;
 document.addEventListener('visibilitychange', () => handleVisibilityChange(document.hidden));

@@ -202,6 +202,14 @@ test('冒烟10 设置多级：列表→各子页导航 → VVVF 联动 → 音�
     await page.click('#closeVisualSettingsViewBtn');
     await expect(page.locator('#settingsView')).toBeVisible();
 
+    // 开发人员选项子页：默认关闭 → 打开 → 返回列表
+    await page.click('#settingsDevItem');
+    await expect(page.locator('#devSettingsView')).toBeVisible();
+    await expect(page.locator('#vvvfMonitorToggle')).not.toBeChecked();
+    await page.locator('#vvvfMonitorToggle').check();
+    await page.click('#closeDevSettingsViewBtn');
+    await expect(page.locator('#settingsView')).toBeVisible();
+
     // 音频子页：默认 VVVF 开、后处理可用、音量 70
     await page.click('#settingsAudioItem');
     await expect(page.locator('#audioSettingsView')).toBeVisible();
@@ -226,6 +234,10 @@ test('冒烟10 设置多级：列表→各子页导航 → VVVF 联动 → 音�
     await expect(page.locator('#vvvfSoundToggle')).not.toBeChecked();
     await expect(page.locator('#postFxToggle')).toBeDisabled();
     await expect(page.locator('#volumeValue')).toHaveText('30');
+    // 开发人员选项开关也持久化
+    await page.click('#closeAudioSettingsViewBtn');
+    await page.click('#settingsDevItem');
+    await expect(page.locator('#vvvfMonitorToggle')).toBeChecked();
     expectNoErrors(errors);
 });
 
@@ -240,9 +252,15 @@ test('冒烟11 恢复默认设置：改设置 → 恢复默认 → 键移除且�
     const hasSettings = await page.evaluate(() => localStorage.getItem('trainSettings') !== null);
     expect(hasSettings).toBe(true);
 
-    // 回设置列表 → 底部数据管理 → 恢复默认设置：单次确认
+    // 回设置列表 → 开发人员选项也改一项（验证恢复默认一并重置）
     await page.click('#closeAudioSettingsViewBtn');
     await expect(page.locator('#settingsView')).toBeVisible();
+    await page.click('#settingsDevItem');
+    await page.locator('#vvvfMonitorToggle').check();
+    await page.click('#closeDevSettingsViewBtn');
+    await expect(page.locator('#settingsView')).toBeVisible();
+
+    // 底部数据管理 → 恢复默认设置：单次确认
     await page.click('#restoreDefaultsBtn');
     await expect(page.locator('#confirmModal')).toBeVisible();
     await page.click('#confirmOkBtn');
@@ -257,6 +275,12 @@ test('冒烟11 恢复默认设置：改设置 → 恢复默认 → 键移除且�
     await expect(page.locator('#vvvfSoundToggle')).toBeChecked();
     await expect(page.locator('#postFxToggle')).toBeEnabled();
     await expect(page.locator('#volumeValue')).toHaveText('70');
+
+    // 开发人员选项也被重置
+    await page.click('#closeAudioSettingsViewBtn');
+    await page.click('#settingsDevItem');
+    await expect(page.locator('#vvvfMonitorToggle')).not.toBeChecked();
+    await page.click('#closeDevSettingsViewBtn');
 
     // 刷新后仍默认（等同新用户）
     await page.reload();

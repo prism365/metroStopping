@@ -145,7 +145,7 @@ setupButtonWithKonami(downBtn, 'ArrowDown');
 document.addEventListener('touchmove', (e) => {
     const target = e.target;
     if (target.closest('.level-grid') || target.closest('.vehicle-grid') || target.closest('.achievement-list')
-        || target.closest('.settings-menu') || target.closest('.range-slider')) {
+        || target.closest('.settings-menu') || target.closest('.range-slider') || target.closest('.vvvf-monitor')) {
         return;
     }
     if (e.target.closest('.game-container')) {

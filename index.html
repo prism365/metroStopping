@@ -79,6 +79,11 @@
                         <span class="settings-item-label">关于</span>
                         <span class="settings-item-chevron">›</span>
                     </button>
+                    <button class="settings-menu-item" id="settingsDevItem">
+                        <span class="settings-item-icon">🔧</span>
+                        <span class="settings-item-label">开发人员选项</span>
+                        <span class="settings-item-chevron">›</span>
+                    </button>
                     <div class="settings-menu-divider"></div>
                     <button class="settings-menu-item" id="restoreDefaultsBtn">
                         <span class="settings-item-icon">🔄</span>
@@ -120,6 +125,20 @@
                 </div>
             </div>
             <button class="overlay-btn secondary" id="closeAudioSettingsViewBtn">返回</button>
+        </div>
+        <!-- 开发人员选项子页 -->
+        <div class="overlay hidden" id="devSettingsView">
+            <button class="close-btn" id="closeDevSettingsBtn">✕</button>
+            <div class="icon">🔧</div>
+            <div class="main-text md">开发人员选项</div>
+            <div class="settings-body">
+                <label class="settings-row">
+                    <span class="settings-label">VVVF 波形监视</span>
+                    <input type="checkbox" class="toggle" id="vvvfMonitorToggle">
+                </label>
+                <div class="settings-placeholder">开启后游戏画面右上角显示 VVVF 波形监视面板（原始 PWM，可拖动、可缩放）</div>
+            </div>
+            <button class="overlay-btn secondary" id="closeDevSettingsViewBtn">返回</button>
         </div>
          <!-- 关于子页 -->
         <div class="overlay hidden" id="aboutView">
@@ -172,6 +191,15 @@
                     <button class="overlay-btn" id="confirmOkBtn">确认</button>
                 </div>
             </div>
+        </div>
+        <!-- VVVF 波形监视面板（开发人员选项） -->
+        <div class="vvvf-monitor" id="vvvfMonitor" hidden>
+            <div class="vvvf-monitor-head" id="vvvfMonitorHead">
+                <span class="vvvf-monitor-title">VVVF 波形</span>
+                <span class="vvvf-monitor-info" id="vvvfMonitorInfo">--</span>
+            </div>
+            <canvas id="vvvfMonitorCanvas" width="720" height="160"></canvas>
+            <div class="vvvf-monitor-resize" id="vvvfMonitorResize"></div>
         </div>
     </div>
 

@@ -29,11 +29,13 @@ test('保存后再加载：round-trip 一致', () => {
     settings.soundEnabled = false;
     settings.postEnabled = false;
     settings.volume = 30;
+    settings.vvvfMonitor = true;
     saveSettings();
     loadSettings();
     assert.equal(settings.soundEnabled, false);
     assert.equal(settings.postEnabled, false);
     assert.equal(settings.volume, 30);
+    assert.equal(settings.vvvfMonitor, true);
 });
 
 test('损坏 JSON：回退默认值且不抛错', () => {
@@ -51,10 +53,11 @@ test('部分字段缺失：仅回退缺失字段（向前兼容）', () => {
 });
 
 test('字段类型不匹配：回退默认', () => {
-    store.set('trainSettings', JSON.stringify({ soundEnabled: 'yes', volume: 'loud' }));
+    store.set('trainSettings', JSON.stringify({ soundEnabled: 'yes', volume: 'loud', vvvfMonitor: 'on' }));
     loadSettings();
     assert.equal(settings.soundEnabled, true);
     assert.equal(settings.volume, 70);
+    assert.equal(settings.vvvfMonitor, false);
 });
 
 test('resetToDefaults：对象回默认且移除 key', () => {

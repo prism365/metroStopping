@@ -17,14 +17,29 @@ let soundEnabled = true;   // VVVF 音效总开关
 let postEnabled = true;    // 音效后处理（biquad+convolver）开关
 let volume = 70;           // 音量 0-100（线性）
 
+// VVVF 波形监视（开发人员选项）
+let monitorEnabled = false;   // worklet 是否回传波形
+let latestWave = null;        // 最近一次回传波形（Float32Array 512）
+let latestMeta = null;        // 对应元信息 {freq,mode,n,carrierFreq,m}
+// 滚动采样缓冲：串联回传块，供示波器做相位锁定显示（读接口 readRollingWave）
+const ROLL_CAP = 8192;
+const roll = new Float32Array(ROLL_CAP);
+let rollPos = 0;
+let rollCount = 0;            // 已积累采样数（封顶 ROLL_CAP）
+
 // e2e 调试钩子（Playwright 只读断言用；main.js 挂到 window）
 export const __audioDebug = () => ({
     contextState: ctx ? ctx.state : 'none',
     audioActive,
-    carrierBase: currentProfile ? currentProfile.carrier.base : null,
+    carrierBase: currentProfile ? currentProfile.async.base : null,
+    hasStages: currentProfile ? currentProfile.syncStages.length > 0 : false,
+    squareFreq: currentProfile ? currentProfile.squareFreq : null,
     soundEnabled,
     postEnabled,
     volume,
+    monitorEnabled,
+    latestWaveLen: latestWave ? latestWave.length : 0,
+    rollSamples: rollCount,
 });
 
 // 主增益 = 音量滑块(0-100 线性) × 车辆 profile 音量(dB) × 0.9；soundEnabled=false 时静音
@@ -46,6 +61,20 @@ export async function init() {
     }
     await ctx.audioWorklet.addModule(new URL('./vvvfWorklet.js', import.meta.url));
     workletNode = new AudioWorkletNode(ctx, 'vvvf-sound');
+    // 收 worklet 回传（波形监视）：{wave, freq, mode, n, carrierFreq, m}
+    workletNode.port.onmessage = (e) => {
+        const d = e.data;
+        if (d && d.wave) {
+            latestWave = d.wave;
+            latestMeta = { freq: d.freq, mode: d.mode, n: d.n, carrierFreq: d.carrierFreq, m: d.m };
+            // 追加到滚动缓冲（环形，封顶 ROLL_CAP）
+            rollCount = Math.min(ROLL_CAP, rollCount + d.wave.length);
+            for (let i = 0; i < d.wave.length; i++) {
+                roll[rollPos] = d.wave[i];
+                rollPos = (rollPos + 1) % ROLL_CAP;
+            }
+        }
+    };
 
     // 后处理链：worklet → [biquads] → [convolver] → compressor → master → destination
     compressor = ctx.createDynamicsCompressor();
@@ -63,9 +92,11 @@ export async function init() {
 
     // 若 setProfile 先于 init 完成，补发配置
     if (currentProfile) {
-        workletNode.port.postMessage({ carrier: currentProfile.carrier, seed: 1 });
+        workletNode.port.postMessage({ profile: currentProfile, seed: 1 });
         rebuildPostChain();
     }
+    // 监视开关先于 init 开启时补发（否则 worklet 不知晓）
+    if (monitorEnabled) workletNode.port.postMessage({ monitor: true });
 }
 
 // ---------- 后处理链重建（车辆切换 / 配置变化时调用）----------
@@ -118,7 +149,7 @@ function rebuildPostChain() {
 export function setProfile(profile) {
     currentProfile = normalizeProfile(profile ?? {});
     if (ctx && workletNode) {
-        workletNode.port.postMessage({ carrier: currentProfile.carrier, seed: 1 });
+        workletNode.port.postMessage({ profile: currentProfile, seed: 1 });
         rebuildPostChain();
     }
 }
@@ -145,6 +176,32 @@ export function setVolume(v) {
     volume = Number.isFinite(n) ? Math.max(0, Math.min(100, n)) : 70;
     if (ctx && workletNode) applyMasterGain();
 }
+
+// ---------- VVVF 波形监视（开发人员选项）----------
+// 开启后 worklet 回传真实输出波形（原始 PWM，无后处理）；关闭则停止回传并清空缓存。
+export function setMonitorEnabled(enabled) {
+    monitorEnabled = !!enabled;
+    latestWave = null;
+    latestMeta = null;
+    rollPos = 0;
+    rollCount = 0;
+    if (ctx && workletNode) workletNode.port.postMessage({ monitor: monitorEnabled });
+}
+
+export function getLatestWave() { return latestWave; }
+export function getLatestMeta() { return latestMeta; }
+
+// 拷贝滚动缓冲最近 min(dest.length, rollCount) 采样到 dest（环形回绕），返回拷贝数
+export function readRollingWave(dest) {
+    const n = Math.min(dest.length, rollCount);
+    if (n === 0) return 0;
+    let start = (rollPos - n + ROLL_CAP) % ROLL_CAP;
+    for (let i = 0; i < n; i++) dest[i] = roll[(start + i) % ROLL_CAP];
+    return n;
+}
+
+// 回传采样率（worklet 与主线程一致）；init 前回退 48k
+export function getSampleRate() { return ctx ? ctx.sampleRate : 48000; }
 
 // ---------- 每帧同步（主线程只发低频控制量，平滑在音频线程）----------
 export function update({ speed, handle, running }) {

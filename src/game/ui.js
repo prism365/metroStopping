@@ -8,10 +8,10 @@ import { ZONE_STYLES } from './render.js';
 import { APP_VERSION } from './version.js';
 import {
     speedDisplay, deviationDisplay, statusBadge, levelDisplay, handleValue, routeInfo,
-    mainMenu, levelView, vehicleView, settingsView, aboutView, visualSettingsView, audioSettingsView,
+    mainMenu, levelView, vehicleView, settingsView, aboutView, visualSettingsView, audioSettingsView, devSettingsView,
     achievementView, countdownOverlay, resultOverlay,
     levelGridContainer, vehicleGridContainer, achievementListContainer,
-    vvvfSoundToggle, postFxToggle, volumeSlider, volumeValue,
+    vvvfSoundToggle, postFxToggle, volumeSlider, volumeValue, vvvfMonitorToggle,
     toast, confirmModal, confirmTitle, confirmMessage, confirmOkBtn, confirmCancelBtn,
 } from './dom.js';
 
@@ -177,6 +177,7 @@ export function showMainMenu() {
     aboutView.classList.add('hidden');
     visualSettingsView.classList.add('hidden');
     audioSettingsView.classList.add('hidden');
+    devSettingsView.classList.add('hidden');
     countdownOverlay.classList.add('hidden');
     resultOverlay.classList.remove('show');
 }
@@ -211,6 +212,7 @@ export function showSettingsView() {
     aboutView.classList.add('hidden');
     visualSettingsView.classList.add('hidden');
     audioSettingsView.classList.add('hidden');
+    devSettingsView.classList.add('hidden');
     settingsView.classList.remove('hidden');
 }
 
@@ -235,6 +237,13 @@ export function showAudioSettingsView() {
     renderSettingsControls();
 }
 
+export function showDevSettingsView() {
+    mainMenu.classList.add('hidden');
+    settingsView.classList.add('hidden');
+    devSettingsView.classList.remove('hidden');
+    renderSettingsControls();
+}
+
 // 设置控件回填：初值 + 二级开关（音效后处理）随 VVVF 总开关置灰联动
 // （导出供 main.js 在「恢复默认设置」后刷新回填）
 export function renderSettingsControls() {
@@ -243,6 +252,7 @@ export function renderSettingsControls() {
     postFxToggle.disabled = !settings.soundEnabled;
     volumeSlider.value = settings.volume;
     volumeValue.textContent = settings.volume;
+    vvvfMonitorToggle.checked = settings.vvvfMonitor;
 }
 
 // 设置项变更 → 仅上抛意图（main.js 统一编排：持久化 + 应用 audioDriver）
@@ -256,6 +266,9 @@ postFxToggle.addEventListener('change', () => {
 volumeSlider.addEventListener('input', () => {
     volumeValue.textContent = volumeSlider.value;
     document.dispatchEvent(new CustomEvent('settings-changed', { detail: { key: 'volume', value: parseInt(volumeSlider.value, 10) } }));
+});
+vvvfMonitorToggle.addEventListener('change', () => {
+    document.dispatchEvent(new CustomEvent('settings-changed', { detail: { key: 'vvvfMonitor', value: vvvfMonitorToggle.checked } }));
 });
 
 export function showAchievementView() {

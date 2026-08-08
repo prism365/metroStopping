@@ -7,6 +7,7 @@ export const DEFAULT_SETTINGS = {
     soundEnabled: true,   // VVVF 音效总开关
     postEnabled: true,    // 音效后处理（二级开关，依赖 soundEnabled）
     volume: 70,           // 音量 0-100
+    vvvfMonitor: false,   // VVVF 波形监视（开发人员选项）
 };
 
 // 运行时设置对象（模块级单例，同 playerProgress 模式）

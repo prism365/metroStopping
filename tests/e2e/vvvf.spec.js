@@ -13,18 +13,31 @@ async function openApp(page) {
     return errors;
 }
 
+// 测试用 profile：含 syncStages（分级变频），freq=45Hz 落在 N=9 同步段 → 非静音
+const TEST_PROFILE = {
+    freqScale: 4.5, slipByHandle: 0.6,
+    async: { base: 2000, randomRange: 0, randomInterval: 0 },
+    syncStages: [
+        { fFrom: 25, n: 15, mFrom: 0.4, mTo: 0.6 },
+        { fFrom: 45, n: 9, mFrom: 0.6, mTo: 0.8 },
+        { fFrom: 75, n: 6, mFrom: 0.8, mTo: 0.95 },
+        { fFrom: 112, n: 3, mFrom: 0.95, mTo: 1.0 },
+    ],
+    squareFreq: 157, mMin: 0.2, hysteresis: 3,
+};
+
 // 页面内用 OfflineAudioContext 渲染 worklet，返回非零采样数
-async function renderNonSilentSamples(page, carrier) {
-    return page.evaluate(async ({ base, range, interval }) => {
+async function renderNonSilentSamples(page, profile) {
+    return page.evaluate(async (profile) => {
         const SR = 48000;
         const len = 24000; // 0.5s
         const oc = new OfflineAudioContext(1, len, SR);
         await oc.audioWorklet.addModule('/src/audio/vvvfWorklet.js');
         const node = new AudioWorkletNode(oc, 'vvvf-sound');
-        // 等处理器确认收到载波配置（规避 OfflineAudioContext 的消息投递竞态）
+        // 等处理器确认收到配置（规避 OfflineAudioContext 的消息投递竞态）
         const ready = new Promise((resolve) => { node.port.onmessage = () => resolve(); });
-        node.port.postMessage({ carrier: { base, randomRange: range, randomInterval: interval }, seed: 1 });
-        node.port.postMessage({ freq: 45, excitation: 1 });
+        node.port.postMessage({ profile, seed: 1 });
+        node.port.postMessage({ freq: 45, excitation: 1 });   // 45Hz → N=9 同步段
         await ready;
         node.connect(oc.destination);
         const buf = await oc.startRendering();
@@ -32,7 +45,7 @@ async function renderNonSilentSamples(page, carrier) {
         let nz = 0;
         for (let i = 0; i < ch.length; i++) if (ch[i] !== 0) nz++;
         return nz;
-    }, carrier);
+    }, profile);
 }
 
 test('vvvf1 主菜单：音频上下文挂起（无声）', async ({ page }) => {
@@ -51,7 +64,8 @@ test('vvvf2 游玩中：音频激活且 worklet 输出非静音', async ({ page 
     await expect(page.locator('#statusBadge')).toContainText('行驶中');
     const dbg = await page.evaluate(() => window.__vvvfAudioDebug());
     expect(dbg.audioActive).toBe(true);
-    const nz = await renderNonSilentSamples(page, { base: 2000, range: 0, interval: 0 });
+    expect(dbg.hasStages).toBe(true);
+    const nz = await renderNonSilentSamples(page, TEST_PROFILE);
     expect(nz).toBeGreaterThan(0);
     expectNoErrors(errors);
 });
@@ -78,7 +92,7 @@ test('vvvf4 ATC 也有声（非静音）', async ({ page }) => {
     await startGame(page);
     await waitForCountdownDone(page);
     await expect(page.locator('#statusBadge')).toContainText('行驶中');
-    const nz = await renderNonSilentSamples(page, { base: 3200, range: 20, interval: 0.15 });
+    const nz = await renderNonSilentSamples(page, { ...TEST_PROFILE, async: { base: 1500, randomRange: 20, randomInterval: 0.15 } });
     expect(nz).toBeGreaterThan(0);
     expectNoErrors(errors);
 });
@@ -103,5 +117,28 @@ test('vvvf5 后台标签页：挂起，回前台恢复', async ({ page }) => {
     await page.waitForFunction(() => window.__vvvfAudioDebug().contextState === 'running');
     dbg = await page.evaluate(() => window.__vvvfAudioDebug());
     expect(dbg.audioActive).toBe(true);
+    expectNoErrors(errors);
+});
+
+test('vvvf6 波形监视：开启后 worklet 回传波形且面板可见', async ({ page }) => {
+    const errors = await openApp(page);
+    // 开发人员选项 → 开启 VVVF 波形监视
+    await page.click('#settingsMenuBtn');
+    await page.click('#settingsDevItem');
+    await expect(page.locator('#vvvfMonitorToggle')).not.toBeChecked();
+    await page.locator('#vvvfMonitorToggle').check();
+    await page.click('#closeDevSettingsViewBtn');
+    await page.click('#closeSettingsViewBtn');
+    // 开局（游戏进行中音频上下文 running，worklet 回传波形）
+    await startGame(page);
+    await waitForCountdownDone(page);
+    await expect(page.locator('#statusBadge')).toContainText('行驶中');
+    // worklet 回传链路端到端：latestWaveLen > 0
+    await page.waitForFunction(() => window.__vvvfAudioDebug().latestWaveLen > 0);
+    const dbg = await page.evaluate(() => window.__vvvfAudioDebug());
+    expect(dbg.monitorEnabled).toBe(true);
+    expect(dbg.latestWaveLen).toBe(512);
+    // 监视面板可见
+    await expect(page.locator('#vvvfMonitor')).toBeVisible();
     expectNoErrors(errors);
 });

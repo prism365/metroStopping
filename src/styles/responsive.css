@@ -32,6 +32,7 @@
   .result-detail-box { padding: 8px 14px; }
   .result-detail { font-size: 13px; }
   .result-btn { padding: 8px 24px; font-size: 15px; }
+  .vvvf-monitor { width: 260px; height: 120px; }
 }
 
 /* ---------- 手机窄屏 ---------- */
@@ -77,6 +78,8 @@
   .result-btn { font-size: 13px; padding: 6px 18px; }
   .hint { font-size: 10px; }
   .hint kbd { padding: 0 6px; }
+  .vvvf-monitor { width: 200px; height: 100px; }
+  .vvvf-monitor-info { font-size: 10px; }
 }
 
 /* ---------- 竖屏：画布拉长 ---------- */
